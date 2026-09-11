@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - UrbanClean</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-weight/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet.js CSS for Interactive Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Custom CSS Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-leaf text-gradient"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>UrbanClean</h1>
+                    <p>Smart City. Clean City.</p>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item">
+                    <i class="fa-solid fa-house"></i> Guest Dashboard
+                </a>
+                <a href="citizen.html" class="nav-item disabled" title="Login as Citizen to access">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Report Complaint
+                </a>
+                <a href="citizen.html" class="nav-item disabled" title="Login as Citizen to access">
+                    <i class="fa-solid fa-magnifying-glass-location"></i> Track Complaint
+                </a>
+                <a href="driver.html" class="nav-item disabled" title="Login as Driver to access">
+                    <i class="fa-solid fa-route"></i> Driver Routes
+                </a>
+                <a href="admin.html" class="nav-item active">
+                    <i class="fa-solid fa-chart-line"></i> Admin Dashboard
+                </a>
+            </nav>
+
+            <div class="sidebar-footer-card">
+                <div class="footer-card-illustration">
+                    <div class="trash-bin blue-bin">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </div>
+                    <div class="trash-bin green-bin">
+                        <i class="fa-solid fa-recycle"></i>
+                    </div>
+                </div>
+                <h3>Keep Your City Clean</h3>
+                <p>Use bins, don't litter. A clean city is a healthy city.</p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top bar -->
+            <header class="topbar">
+                <div class="location-selector">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <select id="state-select">
+                        <option value="Maharashtra">Maharashtra</option>
+                        <option value="Karnataka">Karnataka</option>
+                        <option value="Delhi">Delhi</option>
+                    </select>
+                    <span class="chevron">&rsaquo;</span>
+                    <select id="district-select">
+                        <option value="Mumbai">Mumbai</option>
+                    </select>
+                    <span class="chevron">&rsaquo;</span>
+                    <select id="city-select">
+                        <option value="Bandra">Bandra</option>
+                        <option value="Khar">Khar</option>
+                        <option value="Kurla">Kurla</option>
+                    </select>
+                </div>
+
+                <div class="topbar-actions">
+                    <div class="notification-bell">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="bell-badge"></span>
+                    </div>
+                    
+                    <div class="user-profile-widget" id="user-profile-widget">
+                        <!-- Filled by script.js -->
+                    </div>
+                </div>
+            </header>
+
+            <!-- View Wrapper -->
+            <div class="view-wrapper">
+                <section id="admin-dashboard-section" class="view-section active">
+                    <div class="section-header-box">
+                        <h2>Administrator Command Center</h2>
+                        <p>Global oversight of city complaints, statistics, live driver routing, and workload management.</p>
+                    </div>
+
+                    <!-- Admin Statistics Summary -->
+                    <div class="admin-stats-row">
+                        <div class="admin-stat-box" id="admin-stat-total-today-box" style="cursor: pointer;">
+                            <div class="admin-stat-icon red-stat"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                            <div class="admin-stat-info">
+                                <h3 id="admin-stat-total-today">24</h3>
+                                <p>Reported Today</p>
+                            </div>
+                        </div>
+                        <div class="admin-stat-box">
+                            <div class="admin-stat-icon orange-stat"><i class="fa-solid fa-spinner"></i></div>
+                            <div class="admin-stat-info">
+                                <h3 id="admin-stat-pending">8</h3>
+                                <p>Pending Collector</p>
+                            </div>
+                        </div>
+                        <div class="admin-stat-box">
+                            <div class="admin-stat-icon blue-stat"><i class="fa-solid fa-route"></i></div>
+                            <div class="admin-stat-info">
+                                <h3 id="admin-stat-progress">6</h3>
+                                <p>Currently In Progress</p>
+                            </div>
+                        </div>
+                        <div class="admin-stat-box">
+                            <div class="admin-stat-icon green-stat"><i class="fa-solid fa-circle-check"></i></div>
+                            <div class="admin-stat-info">
+                                <h3 id="admin-stat-solved-today">10</h3>
+                                <p>Solved Today</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="admin-main-grid">
+                        <!-- Left Panel: Driver Status & Control List -->
+                        <div class="admin-left-list">
+                            <!-- Drivers list -->
+                            <div class="card admin-list-card">
+                                <div class="card-header">
+                                    <h3>On Duty Drivers</h3>
+                                    <span class="badge badge-success" id="admin-drivers-count">3 Active</span>
+                                </div>
+                                <div class="drivers-on-duty-list" id="admin-drivers-list">
+                                    <!-- Dynamic drivers list -->
+                                </div>
+                            </div>
+                            
+                            <!-- Selected Driver Info Details -->
+                            <div class="card admin-selected-driver-card disabled-card" id="admin-driver-detail-card">
+                                <div class="card-header">
+                                    <h3>Driver Route Details</h3>
+                                </div>
+                                <div class="driver-detail-content" id="admin-driver-detail-content">
+                                    <p>Select an on-duty driver from the list above to view their active path and assigned cleanup locations.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Global Map Monitoring -->
+                        <div class="admin-right-map">
+                            <div class="card map-card admin-map-card">
+                                <div class="map-header">
+                                    <h3>City-Wide Waste Monitoring Map</h3>
+                                    <span class="location-display" id="admin-map-city-display">Maharashtra > Mumbai</span>
+                                </div>
+                                <div class="map-body-wrapper admin-map-height">
+                                    <div id="admin-leaflet-map" class="leaflet-map-element"></div>
+                                </div>
+                                <div class="map-legend">
+                                    <div class="legend-item"><span class="legend-dot overflow-dot"></span> Active Issue</div>
+                                    <div class="legend-item"><span class="legend-dot progress-dot"></span> In Progress</div>
+                                    <div class="legend-item"><span class="legend-dot completed-dot"></span> Resolved</div>
+                                    <div class="legend-item"><span class="legend-dot driver-dot"><i class="fa-solid fa-truck"></i></span> Driver Live</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Report Section -->
+                    <div class="card" style="margin-top: 24px;">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3>Monthly Waste Tracking Report</h3>
+                                <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">View the past 30 days of data and download the spreadsheet.</p>
+                            </div>
+                            <button class="btn btn-primary" id="btn-export-excel">
+                                <i class="fa-solid fa-file-excel"></i> Export to Excel
+                            </button>
+                        </div>
+                        <div class="table-responsive" style="margin-top: 16px; max-height: 400px; overflow-y: auto;">
+                            <table class="tracking-table" id="monthly-report-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Complaint ID</th>
+                                        <th>Category</th>
+                                        <th>Reported By</th>
+                                        <th>Area</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="monthly-report-tbody">
+                                    <!-- Dynamic items -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Info Toast Notification -->
+    <div class="toast-notification" id="app-toast">
+        <span class="toast-msg">Hello World</span>
+    </div>
+
+    <!-- Modal for Today's Complaints -->
+    <div class="modal-overlay" id="today-complaints-modal">
+        <div class="modal-card" style="max-width: 800px;">
+            <button class="modal-close-btn" id="btn-close-today-modal">&times;</button>
+            <div class="modal-header">
+                <h2>Complaints Reported Today</h2>
+                <p>Detailed list of all garbage issues submitted today in your area.</p>
+            </div>
+            <div class="modal-body" style="padding-top: 10px;">
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="tracking-table">
+                        <thead>
+                           <tr>
+                               <th>Complaint ID</th>
+                               <th>Category</th>
+                               <th>Reported By</th>
+                               <th>Area</th>
+                               <th>Status</th>
+                           </tr>
+                        </thead>
+                        <tbody id="today-complaints-tbody">
+                            <!-- Dynamic items -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Custom Application JS -->
+    <script src="script.js"></script>
+</body>
+</html>

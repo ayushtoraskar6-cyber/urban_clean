@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - UrbanClean Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-light">
+    <div class="modal-overlay active">
+        <div class="modal-card auth-card">
+            <div class="modal-header">
+                <div class="logo-icon"><i class="fa-solid fa-leaf"></i></div>
+                <h2 id="auth-title">Welcome to UrbanClean</h2>
+                <p id="auth-subtitle">Choose your portal and sign in securely</p>
+            </div>
+
+            <div class="role-selector-pills">
+                <button type="button" class="role-pill active" data-role="citizen"><i class="fa-solid fa-person"></i> Citizen</button>
+                <button type="button" class="role-pill" data-role="driver"><i class="fa-solid fa-truck"></i> Driver</button>
+                <button type="button" class="role-pill" data-role="admin"><i class="fa-solid fa-shield-halved"></i> Admin</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="auth-mode-switch" role="tablist" aria-label="Account action">
+                    <button type="button" class="auth-mode active" data-mode="login">Log In</button>
+                    <button type="button" class="auth-mode" data-mode="signup">Sign Up</button>
+                </div>
+
+                <form id="login-form">
+                    <input type="hidden" id="login-role-input" value="citizen">
+                    <div class="form-group signup-only" hidden>
+                        <label for="login-name">Full Name</label>
+                        <input type="text" id="login-name" name="name" placeholder="Your full name" autocomplete="name">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-email">Email Address</label>
+                        <input type="email" id="login-email" name="email" required placeholder="name@example.com" autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" name="password" required placeholder="Minimum 8 characters" autocomplete="current-password">
+                    </div>
+                    <div class="form-group signup-only" hidden>
+                        <label for="login-confirm-password">Confirm Password</label>
+                        <input type="password" id="login-confirm-password" name="confirm-password" placeholder="Re-enter your password" autocomplete="new-password">
+                    </div>
+                    <div class="login-quick-helper alert-note" id="login-credentials-helper">
+                        <p>New here? Create a citizen or driver account. Administrator accounts are issued by the municipality.</p>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" id="auth-submit-button">Log In</button>
+                </form>
+
+                <div class="modal-footer-prompt">
+                    <p>Want to browse as guest? <a href="index.html">Back to Dashboard</a></p>
+                    <p class="demo-credentials"><strong>Demo:</strong> ayush@urbanclean.org / Citizen@123<br>ramesh@urbanclean.org / Driver@123<br>admin@urbanclean.org / Admin@123</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="toast-notification" id="app-toast"><span class="toast-msg">Hello World</span></div>
+    <script src="script.js"></script>
+</body>
+</html>

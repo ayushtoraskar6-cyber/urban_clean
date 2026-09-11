@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citizen Workspace - UrbanClean</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-weight/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet.js CSS for Interactive Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Custom CSS Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-leaf text-gradient"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>UrbanClean</h1>
+                    <p>Smart City. Clean City.</p>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item">
+                    <i class="fa-solid fa-house"></i> Guest Dashboard
+                </a>
+                <a href="#" class="nav-item active" id="btn-nav-report" onclick="toggleCitizenView(event, 'report')">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Report Complaint
+                </a>
+                <a href="#" class="nav-item" id="btn-nav-track" onclick="toggleCitizenView(event, 'track')">
+                    <i class="fa-solid fa-magnifying-glass-location"></i> Track Complaint
+                </a>
+                <a href="driver.html" class="nav-item disabled" title="Login as Driver to access">
+                    <i class="fa-solid fa-route"></i> Driver Routes
+                </a>
+                <a href="admin.html" class="nav-item disabled" title="Login as Admin to access">
+                    <i class="fa-solid fa-chart-line"></i> Admin Dashboard
+                </a>
+            </nav>
+
+            <div class="sidebar-footer-card">
+                <div class="footer-card-illustration">
+                    <div class="trash-bin blue-bin">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </div>
+                    <div class="trash-bin green-bin">
+                        <i class="fa-solid fa-recycle"></i>
+                    </div>
+                </div>
+                <h3>Keep Your City Clean</h3>
+                <p>Use bins, don't litter. A clean city is a healthy city.</p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top bar -->
+            <header class="topbar">
+                <div class="location-selector">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <select id="state-select">
+                        <option value="Maharashtra">Maharashtra</option>
+                        <option value="Karnataka">Karnataka</option>
+                        <option value="Delhi">Delhi</option>
+                    </select>
+                    <span class="chevron">&rsaquo;</span>
+                    <select id="district-select">
+                        <option value="Mumbai">Mumbai</option>
+                    </select>
+                    <span class="chevron">&rsaquo;</span>
+                    <select id="city-select">
+                        <option value="Bandra">Bandra</option>
+                        <option value="Khar">Khar</option>
+                        <option value="Kurla">Kurla</option>
+                    </select>
+                </div>
+
+                <div class="topbar-actions">
+                    <div class="notification-bell">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="bell-badge"></span>
+                    </div>
+                    
+                    <div class="user-profile-widget" id="user-profile-widget">
+                        <!-- Filled by script.js -->
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dynamic View Wrapper -->
+            <div class="view-wrapper">
+                
+                <!-- SUB-VIEW 1: Report Complaint Form -->
+                <section id="citizen-report-subview" class="view-section active">
+                    <div class="section-header-box">
+                        <h2>Report a Waste Issue</h2>
+                        <p>Submit details of garbage overflow or missed pickups to request cleanup action.</p>
+                    </div>
+
+                    <div class="form-grid">
+                        <!-- Left Panel: Form Details -->
+                        <div class="card form-card">
+                            <form id="complaint-report-form">
+                                <div class="form-group">
+                                    <label for="complaint-type">Waste Category <span class="required">*</span></label>
+                                    <select id="complaint-type" required>
+                                        <option value="" disabled selected>Select waste category...</option>
+                                        <option value="Garbage Overflow">Garbage Overflow / Dustbin full</option>
+                                        <option value="Garbage on Road">Garbage Dumped on Road</option>
+                                        <option value="Industrial Waste">Industrial Waste / Construction Debris</option>
+                                        <option value="Hazardous Waste">Hazardous Waste / Chemical Spill</option>
+                                        <option value="Blocked Drainage">Blocked Drainage / Waterlogging</option>
+                                        <option value="Dead Animal">Dead Animal Disposal Needed</option>
+                                        <option value="Other">Other Waste Issue</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="complaint-description">Description / Landmark Details <span class="required">*</span></label>
+                                    <textarea id="complaint-description" rows="4" placeholder="Describe the issue, landmarks, or accessibility issues..." required></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Location Coordinates & Address <span class="required">*</span></label>
+                                    <div class="gps-control-group">
+                                        <button type="button" class="btn btn-secondary" id="btn-use-gps">
+                                            <i class="fa-solid fa-location-crosshairs animate-pulse"></i> Detect My Location
+                                        </button>
+                                        <span class="gps-status-indicator" id="gps-status">Not set (Click map or GPS button)</span>
+                                    </div>
+                                    <div class="latlng-inputs">
+                                        <div class="input-sub">
+                                            <label for="comp-lat">Latitude</label>
+                                            <input type="text" id="comp-lat" readonly placeholder="Click map..." required>
+                                        </div>
+                                        <div class="input-sub">
+                                            <label for="comp-lng">Longitude</label>
+                                            <input type="text" id="comp-lng" readonly placeholder="Click map..." required>
+                                        </div>
+                                    </div>
+                                    <div style="margin-top: 8px;">
+                                        <label for="comp-address" style="font-size: 0.8rem; font-weight: 600;">Detected Address / Location Name</label>
+                                        <input type="text" id="comp-address" placeholder="Detected location address will appear here..." style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.85rem; background: var(--surface);">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="complaint-photo">Upload Proof Photo <span class="required">*</span></label>
+                                    <div class="file-dropzone" id="file-dropzone">
+                                        <input type="file" id="complaint-photo" accept="image/*" required style="display: none;">
+                                        <div class="dropzone-prompt">
+                                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                                            <p>Drag & drop or <span>browse</span> to upload photo</p>
+                                            <small>Supports JPG, PNG (Max 5MB)</small>
+                                        </div>
+                                        <div class="file-preview-area" id="file-preview-area" style="display: none;">
+                                            <img id="img-upload-preview" src="" alt="Proof preview">
+                                            <button type="button" class="btn-remove-file" id="btn-clear-upload">
+                                                <i class="fa-solid fa-circle-xmark"></i> Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i class="fa-solid fa-paper-plane"></i> Submit Complaint
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Right Panel: Map Location Selector -->
+                        <div class="card map-location-selector-card">
+                            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h3>Pin Location on Map</h3>
+                                    <p style="margin:0; font-size:0.8rem; color:var(--text-secondary);">Click or drag marker to select complaint location.</p>
+                                </div>
+                                <span class="badge badge-info" id="map-engine-badge"><i class="fa-solid fa-map-location-dot"></i> Interactive Map</span>
+                            </div>
+                            <div class="map-body-wrapper selector-map-height">
+                                <div id="selector-google-map" class="leaflet-map-element" style="display: none;"></div>
+                                <div id="selector-leaflet-map" class="leaflet-map-element"></div>
+                            </div>
+                            <div style="padding: 12px; display: flex; gap: 8px;">
+                                <button type="button" class="btn btn-success btn-block" id="btn-confirm-location" style="font-size: 0.85rem;">
+                                    <i class="fa-solid fa-circle-check"></i> Confirm Selected Location
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SUB-VIEW 2: Track Complaints List -->
+                <section id="citizen-track-subview" class="view-section">
+                    <div class="section-header-box flex-header">
+                        <div>
+                            <h2>Track Your Complaints</h2>
+                            <p>Monitor the real-time status of reported waste issues.</p>
+                        </div>
+                        <div class="filter-box">
+                            <label for="track-status-filter">Status:</label>
+                            <select id="track-status-filter">
+                                <option value="all">All Issues</option>
+                                <option value="Open">Open</option>
+                                <option value="Pending">Pending Pickup</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="card tracking-card">
+                        <div class="table-responsive">
+                            <table class="tracking-table">
+                                <thead>
+                                    <tr>
+                                        <th>Complaint ID</th>
+                                        <th>Details</th>
+                                        <th>Reported Time</th>
+                                        <th>Location</th>
+                                        <th>Photo</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="citizen-tracking-tbody">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Info Toast Notification -->
+    <div class="toast-notification" id="app-toast">
+        <span class="toast-msg">Hello World</span>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Custom Application JS -->
+    <script src="script.js"></script>
+</body>
+</html>

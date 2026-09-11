@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@turf/turf": "^7.3.5",
+    "axios": "^1.19.0"
+  }
+}
