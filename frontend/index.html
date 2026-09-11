@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UrbanClean - Smart City. Clean City.</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-weight/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet.js CSS for Interactive Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Custom CSS Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-leaf text-gradient"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>UrbanClean</h1>
+                    <p>Smart City. Clean City.</p>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item active">
+                    <i class="fa-solid fa-house"></i> Dashboard
+                </a>
+                <a href="citizen.html" class="nav-item disabled" title="Login as Citizen to access">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Report Complaint
+                </a>
+                <a href="citizen.html" class="nav-item disabled" title="Login as Citizen to access">
+                    <i class="fa-solid fa-magnifying-glass-location"></i> Track Complaint
+                </a>
+                <a href="driver.html" class="nav-item disabled" title="Login as Driver to access">
+                    <i class="fa-solid fa-route"></i> Driver Routes
+                </a>
+                <a href="admin.html" class="nav-item disabled" title="Login as Admin to access">
+                    <i class="fa-solid fa-chart-line"></i> Admin Dashboard
+                </a>
+                <a href="#" class="nav-item" onclick="switchLandingSection(event, 'about-us')">
+                    <i class="fa-solid fa-circle-info"></i> About Us
+                </a>
+                <a href="#" class="nav-item" onclick="switchLandingSection(event, 'how-it-works')">
+                    <i class="fa-solid fa-arrows-spin"></i> How It Works
+                </a>
+                <a href="#" class="nav-item" onclick="switchLandingSection(event, 'contact-us')">
+                    <i class="fa-solid fa-envelope"></i> Contact Us
+                </a>
+            </nav>
+
+            <div class="sidebar-footer-card">
+                <div class="footer-card-illustration">
+                    <div class="trash-bin blue-bin">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </div>
+                    <div class="trash-bin green-bin">
+                        <i class="fa-solid fa-recycle"></i>
+                    </div>
+                </div>
+                <h3>Keep Your City Clean</h3>
+                <p>Use bins, don't litter. A clean city is a healthy city.</p>
+                <button class="btn btn-secondary btn-sm" onclick="switchLandingSection(null, 'about-us')">Learn More</button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top bar -->
+            <header class="topbar">
+                <div class="location-selector">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <select id="state-select">
+                        <option value="Maharashtra">Maharashtra</option>
+                        <option value="Karnataka">Karnataka</option>
+                        <option value="Delhi">Delhi</option>
+                    </select>
+                    <span class="chevron">&rsaquo;</span>
+                    <select id="district-select">
+                        <option value="Mumbai">Mumbai</option>
+                    </select>
+                    <span class="chevron">&rsaquo;</span>
+                    <select id="city-select">
+                        <option value="Bandra">Bandra</option>
+                        <option value="Khar">Khar</option>
+                        <option value="Kurla">Kurla</option>
+                    </select>
+                </div>
+
+                <div class="topbar-actions">
+                    <div class="notification-bell">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="bell-badge"></span>
+                    </div>
+                    
+                    <div class="user-profile-widget" id="user-profile-widget">
+                        <!-- Filled by script.js (either Logged In state or login button) -->
+                    </div>
+                </div>
+            </header>
+
+            <!-- Views container -->
+            <div class="view-wrapper">
+                
+                <!-- GUEST/LANDING view -->
+                <div id="landing-sections-wrapper">
+                    <!-- Standard Guest Dashboard -->
+                    <section id="guest-dashboard-section" class="landing-sub-section active">
+                        <div class="dashboard-grid">
+                            <!-- Left Panel: Actions & Stats -->
+                            <div class="dash-left-panel">
+                                <div class="card banner-card text-white">
+                                    <h2>Report a Waste Issue</h2>
+                                    <p>Help us keep our city clean by reporting garbage issues in your neighborhood.</p>
+                                    <button class="btn btn-white" onclick="redirectToReportPage()">
+                                        <i class="fa-solid fa-bullhorn"></i> Report Now
+                                    </button>
+                                </div>
+
+                                <div class="stats-container">
+                                    <div class="stat-card">
+                                        <div class="stat-icon res-icon"><i class="fa-solid fa-square-check"></i></div>
+                                        <div class="stat-info">
+                                            <h4 id="stat-resolved">12,458</h4>
+                                            <p>Issues Resolved</p>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-icon act-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                                        <div class="stat-info">
+                                            <h4 id="stat-active">342</h4>
+                                            <p>Active Complaints</p>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-icon hap-icon"><i class="fa-solid fa-face-smile"></i></div>
+                                        <div class="stat-info">
+                                            <h4 id="stat-citizens">9,876</h4>
+                                            <p>Happy Citizens</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Panel: Map -->
+                            <div class="dash-right-panel">
+                                <div class="card map-card">
+                                    <div class="map-header">
+                                        <h3>Garbage Map</h3>
+                                        <span class="location-display" id="map-location-title">Maharashtra > Mumbai > Bandra</span>
+                                    </div>
+                                    <div class="map-body-wrapper">
+                                        <div id="main-leaflet-map" class="leaflet-map-element"></div>
+                                    </div>
+                                    <div class="map-legend">
+                                        <div class="legend-item"><span class="legend-dot overflow-dot"></span> Garbage Overflow</div>
+                                        <div class="legend-item"><span class="legend-dot pending-dot"></span> Pending Pickup</div>
+                                        <div class="legend-item"><span class="legend-dot progress-dot"></span> In Progress</div>
+                                        <div class="legend-item"><span class="legend-dot completed-dot"></span> Completed</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 2 -->
+                        <div class="row-grid-three">
+                            <div class="card content-card recent-complaints-card">
+                                <div class="card-header">
+                                    <h3>Recent Complaints</h3>
+                                    <a href="#" class="view-all-link" onclick="redirectToReportPage()">View All</a>
+                                </div>
+                                <div class="complaints-list" id="dashboard-complaints-list">
+                                    <!-- Dynamic items -->
+                                </div>
+                                <div class="card-footer-action">
+                                    <span>Want faster resolution?</span>
+                                    <a href="#" onclick="redirectToReportPage(event)">Report now <i class="fa-solid fa-arrow-right"></i></a>
+                                </div>
+                            </div>
+
+                            <div class="card content-card pickup-schedule-card">
+                                <div class="card-header">
+                                    <h3>Garbage Collection Today</h3>
+                                    <a href="#" class="view-all-link">View Schedule</a>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="schedule-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Area</th>
+                                                <th>Time Slot</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="dashboard-schedule-list">
+                                            <!-- Dynamic items -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="card content-card promo-card text-center">
+                                <div class="promo-illustration">
+                                    <i class="fa-solid fa-handshake-angle text-gradient"></i>
+                                </div>
+                                <h3>Together for a Cleaner Tomorrow</h3>
+                                <p>Small actions today create a cleaner city for tomorrow. Join our community clean drives.</p>
+                                <button class="btn btn-outline" onclick="switchLandingSection(null, 'how-it-works')">Learn More</button>
+                            </div>
+                        </div>
+
+                        <div class="features-row-grid">
+                            <div class="feature-card-small">
+                                <div class="feat-icon"><i class="fa-regular fa-clock"></i></div>
+                                <div class="feat-content">
+                                    <h4>Real-time Updates</h4>
+                                    <p>Get live updates on waste collection and complaints.</p>
+                                </div>
+                            </div>
+                            <div class="feature-card-small">
+                                <div class="feat-icon"><i class="fa-solid fa-route"></i></div>
+                                <div class="feat-content">
+                                    <h4>Smart Routing</h4>
+                                    <p>Optimized routes for faster waste collection.</p>
+                                </div>
+                            </div>
+                            <div class="feature-card-small">
+                                <div class="feat-icon"><i class="fa-regular fa-user"></i></div>
+                                <div class="feat-content">
+                                    <h4>Citizen Friendly</h4>
+                                    <p>Easy reporting and tracking of complaints.</p>
+                                </div>
+                            </div>
+                            <div class="feature-card-small">
+                                <div class="feat-icon"><i class="fa-solid fa-seedling"></i></div>
+                                <div class="feat-content">
+                                    <h4>Cleaner Future</h4>
+                                    <p>Together we can build a sustainable future.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- About Us Section -->
+                    <section id="about-us-section" class="landing-sub-section">
+                        <div class="about-hero text-center text-white">
+                            <h2 class="text-gradient-header">Smart Tech for Cleaner Cities</h2>
+                            <p>UrbanClean bridges the gap between civic responsibility and optimized municipality action.</p>
+                        </div>
+                        <div class="about-grid">
+                            <div class="card text-center about-feature">
+                                <div class="about-icon"><i class="fa-solid fa-globe text-gradient"></i></div>
+                                <h3>Our Vision</h3>
+                                <p>To eliminate trash accumulation in public spaces using smart mapping, automation, and real-time civic participation.</p>
+                            </div>
+                            <div class="card text-center about-feature">
+                                <div class="about-icon"><i class="fa-solid fa-users-gear text-gradient"></i></div>
+                                <h3>Our Approach</h3>
+                                <p>We combine community tracking logs, driver path optimization algorithms, and local government dashboard control into a unified flow.</p>
+                            </div>
+                            <div class="card text-center about-feature">
+                                <div class="about-icon"><i class="fa-solid fa-truck-ramp-box text-gradient"></i></div>
+                                <h3>Our Impact</h3>
+                                <p>Helping reduce fuel emissions for garbage collection vehicles by 20-30% through advanced route optimization and shortening dispatch times.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- How It Works Section -->
+                    <section id="how-it-works-section" class="landing-sub-section">
+                        <div class="section-header-box text-center">
+                            <h2>Step-by-Step Resolution Process</h2>
+                            <p>Understanding the complaints handling cycle within the UrbanClean network.</p>
+                        </div>
+                        <div class="how-it-works-timeline">
+                            <div class="timeline-step">
+                                <div class="step-num">1</div>
+                                <div class="step-card card">
+                                    <h3>Citizen Reports Issue</h3>
+                                    <p>Citizens notice garbage dumps, upload photos, specify details, and share exact coordinates through GPS or interactive map.</p>
+                                    <span class="badge badge-info">Step 1: Citizen Submission</span>
+                                </div>
+                            </div>
+                            <div class="timeline-step">
+                                <div class="step-num">2</div>
+                                <div class="step-card card">
+                                    <h3>Admin Approves & Dispatches</h3>
+                                    <p>The system catalogs complaints and overlays them on municipality driver paths. Admins monitor high-priority zones.</p>
+                                    <span class="badge badge-warning">Step 2: Admin Queue</span>
+                                </div>
+                            </div>
+                            <div class="timeline-step">
+                                <div class="step-num">3</div>
+                                <div class="step-card card">
+                                    <h3>Driver Receives Route & Navigates</h3>
+                                    <p>Drivers get fuel-optimized point-to-point directions. They follow the GPS pins to collection coordinates.</p>
+                                    <span class="badge badge-primary">Step 3: Optimization</span>
+                                </div>
+                            </div>
+                            <div class="timeline-step">
+                                <div class="step-num">4</div>
+                                <div class="step-card card">
+                                    <h3>Cleanup & Verification</h3>
+                                    <p>Drivers clean the site, capture validation photos, and mark issues as solved. Citizens receive instant confirmation alerts.</p>
+                                    <span class="badge badge-success">Step 4: Cleanup Log</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Contact Us Section -->
+                    <section id="contact-us-section" class="landing-sub-section">
+                        <div class="section-header-box">
+                            <h2>Contact UrbanClean Support</h2>
+                            <p>Have issues, questions, or ideas for municipality partnerships? We are here to help.</p>
+                        </div>
+                        <div class="form-grid">
+                            <div class="card form-card">
+                                <h3>Send Us a Message</h3>
+                                <form id="contact-form" class="mt-3" onsubmit="event.preventDefault(); alert('Inquiry Sent successfully!'); this.reset();">
+                                    <div class="form-group">
+                                        <label for="contact-name">Full Name</label>
+                                        <input type="text" id="contact-name" placeholder="John Doe" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="contact-email">Email Address</label>
+                                        <input type="email" id="contact-email" placeholder="john@example.com" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="contact-msg">Message</label>
+                                        <textarea id="contact-msg" rows="5" placeholder="Your inquiry or feedback..." required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Send Inquiry</button>
+                                </form>
+                            </div>
+                            <div class="card text-card support-details-card">
+                                <h3>Municipal Head Office</h3>
+                                <p class="mt-3"><i class="fa-solid fa-location-dot"></i> Ground Floor, MCGM Ward Office, Bandra West, Mumbai, MH - 400050</p>
+                                <p class="mt-2"><i class="fa-solid fa-phone"></i> +91 22 2640 0012</p>
+                                <p class="mt-2"><i class="fa-solid fa-envelope"></i> helpdesk@urbanclean.gov.in</p>
+                                <hr class="my-4">
+                                <h4>Operating Hours</h4>
+                                <p class="mt-2">Monday - Saturday: 8:00 AM - 6:00 PM</p>
+                                <p>Emergency Cleanup Hotline: Available 24/7</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+                
+            </div>
+        </main>
+    </div>
+
+    <!-- Info Toast Notification -->
+    <div class="toast-notification" id="app-toast">
+        <span class="toast-msg">Hello World</span>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Custom Application JS -->
+    <script src="script.js"></script>
+</body>
+</html>
