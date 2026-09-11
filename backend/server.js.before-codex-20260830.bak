@@ -1,0 +1,476 @@
+import express from 'express';
+import cors from 'cors';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import crypto from 'crypto';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Enable CORS and JSON body parsers
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Create 'uploads' folder if it doesn't exist
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Multer Storage Configuration
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed!'), false);
+        }
+    }
+});
+
+// Serve Static Frontend Assets
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
+app.use('/uploads', express.static(uploadDir));
+
+// JSON Database Helper Utility
+const DB_FILE = path.join(__dirname, 'db.json');
+
+function readDB() {
+    try {
+        const data = fs.readFileSync(DB_FILE, 'utf8');
+        const db = JSON.parse(data);
+
+        // Auto-purge complaints older than 30 days
+        const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+        if (db.complaints) {
+            const before = db.complaints.length;
+            db.complaints = db.complaints.filter(c => {
+                const ts = c.timestamp || new Date(c.createdAt || 0).getTime();
+                return ts >= thirtyDaysAgo;
+            });
+            if (db.complaints.length < before) {
+                console.log(`[Auto-Cleanup] Removed ${before - db.complaints.length} complaint(s) older than 30 days.`);
+                writeDB(db);
+            }
+        }
+        return db;
+    } catch (err) {
+        console.error('Error reading DB, returning defaults', err);
+        return { complaints: [], drivers: [] };
+    }
+}
+
+function writeDB(data) {
+    try {
+        fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
+    } catch (err) {
+        console.error('Error writing DB', err);
+    }
+}
+
+function passwordHash(password, salt) {
+    return crypto.scryptSync(password, salt, 64).toString('hex');
+}
+
+function createAccount({ id, name, email, password, role, vehicle = '', state = '', district = '', city = '' }) {
+    const salt = crypto.randomBytes(16).toString('hex');
+    return {
+        id,
+        name,
+        email: email.toLowerCase(),
+        role,
+        vehicle,
+        state,
+        district,
+        city,
+        salt,
+        passwordHash: passwordHash(password, salt),
+        createdAt: new Date().toISOString()
+    };
+}
+
+// Accounts are deliberately separated by role so portal access can be
+// managed independently for citizens, collection drivers, and administrators.
+function ensureAccountStore(db) {
+    if (db.accounts) {
+        // Ensure Kalyan admin exists even if accounts were already seeded
+        const admins = db.accounts.admins || [];
+        const kalyanExists = admins.find(a => a.email === 'kalyan.admin@urbanclean.org');
+        if (!kalyanExists) {
+            admins.push(createAccount({
+                id: 'ADM-KLY-001',
+                name: 'Kalyan Municipal Admin',
+                email: 'kalyan.admin@urbanclean.org',
+                password: 'Admin@123',
+                role: 'admin',
+                state: 'Maharashtra',
+                district: 'Thane',
+                city: 'Kalyan'
+            }));
+            db.accounts.admins = admins;
+            writeDB(db);
+        }
+        return db.accounts;
+    }
+
+    db.accounts = {
+        citizens: [createAccount({ id: 'CIT-702', name: 'Ayush Sharma', email: 'ayush@urbanclean.org', password: 'Citizen@123', role: 'citizen' })],
+        drivers: [createAccount({ id: 'DRV-101', name: 'Ramesh Kumar', email: 'ramesh@urbanclean.org', password: 'Driver@123', role: 'driver', vehicle: 'MH-02-EG-4521' })],
+        admins: [
+            createAccount({ id: 'ADM-999', name: 'MCGM Administrator', email: 'admin@urbanclean.org', password: 'Admin@123', role: 'admin' }),
+            createAccount({ id: 'ADM-KLY-001', name: 'Kalyan Municipal Admin', email: 'kalyan.admin@urbanclean.org', password: 'Admin@123', role: 'admin', state: 'Maharashtra', district: 'Thane', city: 'Kalyan' })
+        ]
+    };
+    writeDB(db);
+    return db.accounts;
+}
+
+function roleCollection(role) {
+    return { citizen: 'citizens', driver: 'drivers', admin: 'admins' }[role];
+}
+
+// Node mappings for route distance calculations
+const ROUTE_NODES = {
+    'Bandra Depot': { lat: 19.0518, lng: 72.8278 },
+    'Khar Depot': { lat: 19.0690, lng: 72.8310 },
+    'Kurla Depot': { lat: 19.0700, lng: 72.8750 },
+    'Deonar Landfill': { lat: 19.0583, lng: 72.9231 },
+    'Kanjurmarg Landfill': { lat: 19.1245, lng: 72.9350 }
+};
+
+// ----------------------------------------------------
+// API ENDPOINTS
+// ----------------------------------------------------
+
+// 1. Authenticate user using the selected role's separate account collection.
+app.post('/api/login', (req, res) => {
+    const { role, email, password } = req.body;
+    const collection = roleCollection(role);
+    if (!collection || !email || !password) return res.status(400).json({ error: 'Email, password, and account type are required.' });
+
+    const db = readDB();
+    const accounts = ensureAccountStore(db);
+    const account = accounts[collection].find(item => item.email === email.trim().toLowerCase());
+    if (!account || passwordHash(password, account.salt) !== account.passwordHash) {
+        return res.status(401).json({ error: 'Incorrect email or password for this account type.' });
+    }
+
+    res.json({ success: true, user: { role: account.role, name: account.name, email: account.email, id: account.id, vehicle: account.vehicle, state: account.state || '', district: account.district || '', city: account.city || '' } });
+});
+
+// 2. Register citizen and driver accounts. Administrators are provisioned by
+// the municipality and therefore cannot be created from the public portal.
+app.post('/api/signup', (req, res) => {
+    const { role, name, email, password } = req.body;
+    const collection = roleCollection(role);
+    if (!['citizen', 'driver'].includes(role)) return res.status(403).json({ error: 'Administrator accounts are provisioned by the municipality.' });
+    if (!name?.trim() || !email?.trim() || !password || password.length < 8) {
+        return res.status(400).json({ error: 'Enter your name, a valid email, and a password of at least 8 characters.' });
+    }
+
+    const db = readDB();
+    const accounts = ensureAccountStore(db);
+    const normalizedEmail = email.trim().toLowerCase();
+    const emailInUse = Object.values(accounts).flat().some(account => account.email === normalizedEmail);
+    if (emailInUse) return res.status(409).json({ error: 'An account already exists with this email address.' });
+
+    const prefix = role === 'citizen' ? 'CIT' : 'DRV';
+    const account = createAccount({
+        id: `${prefix}-${String(Date.now()).slice(-6)}`,
+        name: name.trim(), email: normalizedEmail, password, role,
+        vehicle: ''
+    });
+    accounts[collection].push(account);
+    writeDB(db);
+    res.status(201).json({ success: true, user: { role: account.role, name: account.name, email: account.email, id: account.id, vehicle: account.vehicle } });
+});
+
+// 3. Get Complaints (with filters)
+app.get('/api/complaints', (req, res) => {
+    const db = readDB();
+    let result = db.complaints;
+    
+    if (req.query.city) {
+        result = result.filter(c => c.city.toLowerCase() === req.query.city.toLowerCase());
+    }
+    
+    res.json(result);
+});
+
+// 4. Get saved collection points for a driver
+app.get('/api/driver/route', (req, res) => {
+    const { driverId } = req.query;
+    if (!driverId) return res.status(400).json({ error: 'driverId is required.' });
+    const db = readDB();
+    const routes = db.driverRoutes || {};
+    res.json({ driverId, points: routes[driverId] || [] });
+});
+
+// 5. Save/update collection points for a driver (max 40)
+app.post('/api/driver/route', (req, res) => {
+    const { driverId, points } = req.body;
+    if (!driverId || !Array.isArray(points)) return res.status(400).json({ error: 'driverId and points array are required.' });
+    if (points.length > 40) return res.status(400).json({ error: 'Maximum 40 collection points allowed.' });
+
+    const db = readDB();
+    if (!db.driverRoutes) db.driverRoutes = {};
+    db.driverRoutes[driverId] = points.map((p, i) => ({
+        index: i + 1,
+        label: p.label || `Point ${i + 1}`,
+        lat: parseFloat(p.lat),
+        lng: parseFloat(p.lng),
+        savedAt: new Date().toISOString()
+    }));
+    writeDB(db);
+    res.json({ success: true, saved: db.driverRoutes[driverId].length });
+});
+
+// 3. Citizen submits new complaint (Multipart Form)
+app.post('/api/complaints', upload.single('photo'), (req, res) => {
+    try {
+        const { category, description, lat, lng, area, city, reportedBy } = req.body;
+        
+        if (!req.file) {
+            return res.status(400).json({ error: 'Photo upload is mandatory.' });
+        }
+
+        const db = readDB();
+        const randId = 'COMP-' + Math.floor(100 + Math.random() * 900);
+        
+        const newComplaint = {
+            id: randId,
+            category: category || 'General Waste',
+            title: (category || 'Waste') + ' reported near area',
+            description: description || '',
+            lat: parseFloat(lat),
+            lng: parseFloat(lng),
+            area: area || (city + ' Sector-' + (Math.floor(Math.random() * 5) + 1)),
+            city: city || 'Bandra',
+            status: 'Open',
+            reportedBy: reportedBy || 'Anonymous',
+            timestamp: Date.now(),
+            photo: `/uploads/${req.file.filename}` // Relative path
+        };
+
+        db.complaints.push(newComplaint);
+
+        // Auto-assign to driver Ramesh Kumar (DRV-101) if reported in Bandra
+        if (newComplaint.city.toLowerCase() === 'bandra') {
+            const ramesh = db.drivers.find(d => d.id === 'DRV-101');
+            if (ramesh) {
+                ramesh.assignedComplaints.push(randId);
+                // Insert stop before landfill (which is the last element)
+                if (ramesh.route.length > 0) {
+                    ramesh.route.splice(ramesh.route.length - 1, 0, randId);
+                } else {
+                    ramesh.route = ['Bandra Depot', randId, 'Deonar Landfill'];
+                }
+            }
+        }
+
+        writeDB(db);
+        res.status(201).json(newComplaint);
+    } catch (err) {
+        console.error('Error reporting complaint', err);
+        res.status(500).json({ error: 'Failed to save complaint.' });
+    }
+});
+
+// 4. Driver uploads resolution photo & marks complete
+app.put('/api/complaints/:id/resolve', upload.single('photo'), (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!req.file) {
+            return res.status(400).json({ error: 'Resolution photo verification is required.' });
+        }
+
+        const db = readDB();
+        const target = db.complaints.find(c => c.id === id);
+
+        if (!target) {
+            return res.status(404).json({ error: 'Complaint not found.' });
+        }
+
+        target.status = 'Completed';
+        target.photo = `/uploads/${req.file.filename}`; // Replace with clean site verification photo
+        
+        writeDB(db);
+        res.json(target);
+    } catch (err) {
+        console.error('Error resolving complaint', err);
+        res.status(500).json({ error: 'Failed to update complaint status.' });
+    }
+});
+
+// 5. Calculate Fuel Optimized Route (TSP Nearest Neighbor + OSRM Road Routing)
+app.get('/api/route-optimize', async (req, res) => {
+    try {
+        const { start, end, city } = req.query;
+        
+        const startNode = ROUTE_NODES[start] || ROUTE_NODES['Bandra Depot'];
+        const endNode = ROUTE_NODES[end] || ROUTE_NODES['Deonar Landfill'];
+
+        const db = readDB();
+        
+        // Filter active complaints in this city
+        const activeStops = db.complaints.filter(c => 
+            c.status !== 'Completed' && 
+            c.city.toLowerCase() === (city || 'bandra').toLowerCase()
+        );
+
+        if (activeStops.length === 0) {
+            return res.json({
+                distance: '0.00 km',
+                savings: '0%',
+                path: [
+                    { name: start, lat: startNode.lat, lng: startNode.lng },
+                    { name: end, lat: endNode.lat, lng: endNode.lng }
+                ],
+                roadPath: [
+                    { lat: startNode.lat, lng: startNode.lng },
+                    { lat: endNode.lat, lng: endNode.lng }
+                ]
+            });
+        }
+
+        // TSP Nearest-Neighbor Algorithm
+        let curr = startNode;
+        let path = [{ name: start, lat: startNode.lat, lng: startNode.lng }];
+        let pool = [...activeStops];
+
+        while (pool.length > 0) {
+            let bestIdx = 0;
+            let bestDist = parseFloat(calculateDistance(curr.lat, curr.lng, pool[0].lat, pool[0].lng));
+
+            for (let i = 1; i < pool.length; i++) {
+                let d = parseFloat(calculateDistance(curr.lat, curr.lng, pool[i].lat, pool[i].lng));
+                if (d < bestDist) {
+                    bestDist = d;
+                    bestIdx = i;
+                }
+            }
+            curr = pool[bestIdx];
+            path.push({
+                id: curr.id,
+                category: curr.category,
+                title: curr.title,
+                lat: curr.lat,
+                lng: curr.lng,
+                area: curr.area
+            });
+            pool.splice(bestIdx, 1);
+        }
+        
+        path.push({ name: end, lat: endNode.lat, lng: endNode.lng });
+
+        // Fetch detailed geometry and distance from OSRM
+        const coordsStr = path.map(node => `${node.lng},${node.lat}`).join(';');
+        const osrmUrl = `http://router.project-osrm.org/route/v1/driving/${coordsStr}?overview=full&geometries=geojson`;
+        
+        let roadPath = null;
+        let totalKm = 0;
+
+        try {
+            const osrmRes = await fetch(osrmUrl).then(r => r.json());
+            if (osrmRes && osrmRes.routes && osrmRes.routes[0]) {
+                roadPath = osrmRes.routes[0].geometry.coordinates.map(c => ({ lat: c[1], lng: c[0] }));
+                totalKm = osrmRes.routes[0].distance / 1000;
+            }
+        } catch (osrmErr) {
+            console.error('OSRM API fetch failed, falling back to Haversine calculations:', osrmErr);
+        }
+
+        // Fallback to straight-line distance if OSRM failed or was offline
+        if (totalKm === 0) {
+            for (let i = 0; i < path.length - 1; i++) {
+                totalKm += parseFloat(calculateDistance(path[i].lat, path[i].lng, path[i + 1].lat, path[i + 1].lng));
+            }
+        }
+
+        const co2Savings = Math.floor(Math.random() * 10) + 22; // 22% - 32% savings
+
+        res.json({
+            distance: `${totalKm.toFixed(2)} km`,
+            savings: `${co2Savings}%`,
+            path: path,
+            roadPath: roadPath
+        });
+    } catch (err) {
+        console.error('Error generating optimized route:', err);
+        res.status(500).json({ error: 'Failed to generate optimized route.' });
+    }
+});
+
+// Helper distance math
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return (R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)))).toFixed(2);
+}
+
+// 6. Admin Panel Statistics Compilation
+app.get('/api/admin/stats', (req, res) => {
+    const db = readDB();
+    const complaints = db.complaints;
+
+    const stats = {
+        total: complaints.length,
+        open: complaints.filter(c => c.status === 'Open').length,
+        pending: complaints.filter(c => c.status === 'Pending').length,
+        progress: complaints.filter(c => c.status === 'In Progress').length,
+        completed: complaints.filter(c => c.status === 'Completed').length,
+        byCity: {}
+    };
+
+    complaints.forEach(c => {
+        if (!stats.byCity[c.city]) {
+            stats.byCity[c.city] = { total: 0, open: 0, completed: 0 };
+        }
+        stats.byCity[c.city].total++;
+        if (c.status === 'Completed') {
+            stats.byCity[c.city].completed++;
+        } else {
+            stats.byCity[c.city].open++;
+        }
+    });
+
+    res.json(stats);
+});
+
+// 7. Get On Duty Drivers list
+app.get('/api/drivers', (req, res) => {
+    const db = readDB();
+    res.json(db.drivers);
+});
+
+// Fallback: Redirect all other requests to Landing Page
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
+});
+
+// Start listening
+app.listen(PORT, () => {
+    console.log(`UrbanClean Backend Service running at http://localhost:${PORT}`);
+});

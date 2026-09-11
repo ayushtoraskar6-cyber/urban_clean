@@ -1,0 +1,753 @@
+{
+  "complaints": [
+    {
+      "id": "COMP-001",
+      "userId": "CIT-702",
+      "category": "Garbage Overflow",
+      "title": "Garbage pile near the station area",
+      "description": "Huge heap of plastic bags, cardboard boxes, and decaying organic waste right outside Bandra West Railway Station. Emitting foul smell.",
+      "lat": 19.0544,
+      "lng": 72.8295,
+      "area": "Bandra West",
+      "city": "Bandra",
+      "status": "Open",
+      "reportedBy": "Ayush Sharma",
+      "timeStr": "30 mins ago",
+      "photo": "https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&w=300&q=80",
+      "timestamp": 1787920000000
+    },
+    {
+      "id": "COMP-002",
+      "userId": "CIT-808",
+      "category": "Garbage on Road",
+      "title": "Overflowing dustbin on Main Road",
+      "description": "Public secondary dustbin is completely overflowing on Khar West Main Road, waste spills onto the sidewalk blocking pedestrians.",
+      "lat": 19.0682,
+      "lng": 72.8342,
+      "area": "Khar West",
+      "city": "Khar",
+      "status": "Pending",
+      "reportedBy": "Nikhil Mehta",
+      "timeStr": "2 hours ago",
+      "photo": "https://images.unsplash.com/photo-1605600611270-ac524ef7c24a?auto=format&fit=crop&w=300&q=80",
+      "timestamp": 1787907200000
+    },
+    {
+      "id": "COMP-003",
+      "userId": "CIT-909",
+      "category": "Other",
+      "title": "Waste not collected for 3 days",
+      "description": "Municipal garbage collection truck has not visited the Sector-3 residential society block in Kurla West for three consecutive days.",
+      "lat": 19.0724,
+      "lng": 72.8791,
+      "area": "Kurla West",
+      "city": "Kurla",
+      "status": "In Progress",
+      "reportedBy": "Vikram Singh",
+      "timeStr": "1 day ago",
+      "photo": "https://images.unsplash.com/photo-1530587191325-3db32d826c18?auto=format&fit=crop&w=300&q=80",
+      "timestamp": 1787841400000
+    },
+    {
+      "id": "COMP-243",
+      "userId": "CIT-702",
+      "category": "Garbage Overflow",
+      "title": "Garbage Overflow reported near area",
+      "description": "smarat ashok nagar",
+      "lat": 19.157886,
+      "lng": 73.236921,
+      "area": "Kalyan Sector-3",
+      "city": "Kalyan",
+      "status": "Completed",
+      "reportedBy": "Ayush",
+      "timestamp": 1787843752946,
+      "photo": "/uploads/photo-1788278152474-704635031.png"
+    },
+    {
+      "id": "COMP-264",
+      "userId": "CIT-227356",
+      "category": "Garbage Overflow",
+      "title": "Garbage Overflow reported near area",
+      "description": "near ploce station",
+      "lat": 19.157325,
+      "lng": 73.23846,
+      "latitude": 19.157325,
+      "longitude": 73.23846,
+      "address": "Badlapur, Kulgaon Badlapur, Ambernath Subdistrict, Thane, Maharashtra, 421503, India",
+      "area": "Kalyan Sector-3",
+      "city": "Kalyan",
+      "status": "Open",
+      "reportedBy": "Ayush",
+      "timestamp": 1789046772413,
+      "createdAt": "2026-09-10T13:26:12.413Z",
+      "photo": "/uploads/photo-1789046772394-691184776.jpg"
+    },
+    {
+      "id": "COMP-573",
+      "userId": "CIT-227356",
+      "category": "Garbage Overflow",
+      "title": "Garbage Overflow reported near area",
+      "description": "sa",
+      "lat": 19.232544,
+      "lng": 73.135684,
+      "latitude": 19.232544,
+      "longitude": 73.135684,
+      "address": "Kalyan Station Road, Kalyan East, Kalyan, Kalyan-Dombivli, Kalyan Subdistrict, Thane, Maharashtra, 421306, India",
+      "area": "Kalyan Sector-1",
+      "city": "Kalyan",
+      "status": "Open",
+      "reportedBy": "Ayush",
+      "timestamp": 1789046927831,
+      "createdAt": "2026-09-10T13:28:47.831Z",
+      "photo": "/uploads/photo-1789046927818-918650779.jpg",
+      "routeStatus": "assigned_today",
+      "assignedDriverId": "DRV-101",
+      "assignedRouteDate": "2026-09-10"
+    },
+    {
+      "id": "COMP-392",
+      "userId": "CIT-227356",
+      "category": "Garbage Overflow",
+      "title": "Garbage Overflow reported near area",
+      "description": "sa",
+      "lat": 19.222681,
+      "lng": 73.126768,
+      "latitude": 19.222681,
+      "longitude": 73.126768,
+      "address": "Hazi Malang Road, Kalyan East, Kalyan, Kalyan-Dombivli, Kalyan Subdistrict, Thane, Maharashtra, 421306, India",
+      "area": "Kalyan Sector-1",
+      "city": "Kalyan",
+      "status": "Open",
+      "reportedBy": "Ayush",
+      "timestamp": 1789047006461,
+      "createdAt": "2026-09-10T13:30:06.461Z",
+      "photo": "/uploads/photo-1789047006432-268763909.jpg",
+      "routeStatus": "assigned_today",
+      "assignedDriverId": "DRV-101",
+      "assignedRouteDate": "2026-09-10"
+    },
+    {
+      "id": "COMP-763",
+      "userId": "CIT-316339",
+      "category": "Garbage Overflow",
+      "title": "Garbage Overflow reported near area",
+      "description": "vasai",
+      "lat": 19.025914,
+      "lng": 72.844288,
+      "latitude": 19.025914,
+      "longitude": 72.844288,
+      "address": "D G Ruparel College of Arts, Science and Commerce, Senapati Bapat Marg, Telephone Colony, Matunga West, G/N Ward, Mumbai Zone 2, Mumbai City District, Maharashtra, 400016, India",
+      "area": "Kalyan Sector-1",
+      "city": "Kalyan",
+      "status": "Open",
+      "routeStatus": "unassigned",
+      "assignedDriverId": "",
+      "assignedRouteDate": "",
+      "scheduledForDate": "2026-09-11",
+      "reportedBy": "Aarti",
+      "timestamp": 1789110916204,
+      "createdAt": "2026-09-11T07:15:16.204Z",
+      "photo": "/uploads/photo-1789110916138-555692987.jpg"
+    }
+  ],
+  "drivers": [
+    {
+      "id": "DRV-101",
+      "name": "Ramesh Kumar",
+      "status": "Active",
+      "vehicle": "Eicher Pro Dump Truck (MH-02-EG-4521)",
+      "route": [
+        "Bandra Depot",
+        "COMP-001",
+        "COMP-002",
+        "Deonar Landfill"
+      ],
+      "assignedComplaints": [
+        "COMP-001",
+        "COMP-002"
+      ],
+      "efficiency": "28%",
+      "distance": "12.4 km"
+    },
+    {
+      "id": "DRV-102",
+      "name": "Amit Patel",
+      "status": "Active",
+      "vehicle": "Tata Ace Garbage Tipper (MH-03-DF-8812)",
+      "route": [
+        "Kurla Depot",
+        "COMP-003",
+        "Deonar Landfill"
+      ],
+      "assignedComplaints": [
+        "COMP-003"
+      ],
+      "efficiency": "22%",
+      "distance": "9.8 km"
+    },
+    {
+      "id": "DRV-103",
+      "name": "Sunil Shinde",
+      "status": "Off-Duty",
+      "vehicle": "Mahindra Bolero Picker (MH-01-AL-6490)",
+      "route": [],
+      "assignedComplaints": [],
+      "efficiency": "0%",
+      "distance": "0 km"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "NT-001",
+      "type": "info",
+      "message": "Driver Ramesh Kumar initiated shift on vehicle MH-02-EG-4521.",
+      "timeStr": "10 mins ago"
+    },
+    {
+      "id": "NT-002",
+      "type": "warning",
+      "message": "Complaint COMP-002 status changed to Pending Pickup.",
+      "timeStr": "2 hours ago"
+    },
+    {
+      "id": "NT-003",
+      "type": "success",
+      "message": "Complaint COMP-003 has been assigned to Driver Amit Patel.",
+      "timeStr": "1 day ago"
+    }
+  ],
+  "accounts": {
+    "citizens": [
+      {
+        "id": "CIT-702",
+        "name": "Ayush Sharma",
+        "email": "ayush@urbanclean.org",
+        "role": "citizen",
+        "vehicle": "",
+        "salt": "8548bbb3e8109c03793569b70052032c",
+        "passwordHash": "2ba95bbf631c6d4feac020304d0101682b8c8400bb154f00c595e8b82a8d7802488d3f8fc80e6b460cf38ef8408d99009180c1c158f8d943c3cb2fb0da7f1897",
+        "createdAt": "2026-08-27T15:07:07.277Z"
+      },
+      {
+        "id": "CIT-227356",
+        "name": "Ayush",
+        "email": "ayushtoraskar6@gmail.com",
+        "role": "citizen",
+        "vehicle": "",
+        "salt": "f0f1360a69d9f286391a48f4bde90ba1",
+        "passwordHash": "a4c959d0733435470c76a78d70bca2dc10b9f12f1b7daf8dfdd8fa4d3f4e1dbbbdddfeb87ac781ec53ab924bd25b1fdd535bdfb7f9e8fae0ca9d041ffc8bbb73",
+        "createdAt": "2026-08-27T15:07:07.396Z"
+      },
+      {
+        "id": "CIT-638784",
+        "name": "abc",
+        "email": "abc@gmail.com",
+        "role": "citizen",
+        "vehicle": "",
+        "state": "",
+        "district": "",
+        "city": "",
+        "salt": "6bec49cbc8dcd7a09b9b71a3fb09785d",
+        "passwordHash": "8246876454f3c3a25eee6fae065d81ca86121393f13d4df91953f101d8207036a7b6e939f43fbe8bd0a1d3679851f0274d9d7309eb507be824b99904a5b96860",
+        "createdAt": "2026-09-08T05:00:38.880Z"
+      },
+      {
+        "id": "CIT-109001",
+        "name": "ABC",
+        "email": "abcdf@gmail.com",
+        "role": "citizen",
+        "vehicle": "",
+        "state": "",
+        "district": "",
+        "city": "",
+        "salt": "c6358940b6eabe8e26f623e68bcb41ea",
+        "passwordHash": "92328462e76fd8459f3ad066888ebf19538b2f24d684a8c8a9cf2f57ed25824f347d72323cdb1329ae019417c3841da03432ed4c5df2a8c79edbdd3067c8c834",
+        "createdAt": "2026-09-10T16:18:29.051Z"
+      },
+      {
+        "id": "CIT-316339",
+        "name": "Aarti",
+        "email": "aarti@gmail.com",
+        "role": "citizen",
+        "vehicle": "",
+        "state": "",
+        "district": "",
+        "city": "",
+        "salt": "72c6bf7cc13b257786a3b35123d9a869",
+        "passwordHash": "34545fd4e609d2d3056510cea645ccfd8247a4d6509f2a66cc2908948115be4aa5d8f794f85d11ab4af52740cbe65541d287d8ef846816b316e184c91c7be768",
+        "createdAt": "2026-09-11T07:05:16.409Z"
+      }
+    ],
+    "drivers": [
+      {
+        "id": "DRV-101",
+        "name": "Ramesh Kumar",
+        "email": "ramesh@urbanclean.org",
+        "role": "driver",
+        "vehicle": "MH-02-EG-4521",
+        "salt": "6b706930f789879b2ddfae004540c4f4",
+        "passwordHash": "ad8cf32d58c6667b7035d2529ef81a2a7121fa734c8017d001c5cd71768ec0c9081da82c4060dfca1ff3d7d4009e9129673287a97e98c611996b292a1688214e",
+        "createdAt": "2026-08-27T15:07:07.315Z"
+      }
+    ],
+    "admins": [
+      {
+        "id": "ADM-999",
+        "name": "MCGM Administrator",
+        "email": "admin@urbanclean.org",
+        "role": "admin",
+        "vehicle": "",
+        "salt": "b5583f374b3220e4304be38ed1004fea",
+        "passwordHash": "b5dac6ec8f33f0bbbfd6bb8e27caa2f11ee20a0ec3277c18536db5e35a31a879fd21cea802ff46eadc4afc386fdfbd3cdf958d3515f206aa2f643c816d4fb796",
+        "createdAt": "2026-08-27T15:07:07.353Z"
+      },
+      {
+        "id": "ADM-KLY-001",
+        "name": "Kalyan Municipal Admin",
+        "email": "kalyan.admin@urbanclean.org",
+        "role": "admin",
+        "vehicle": "",
+        "state": "Maharashtra",
+        "district": "Thane",
+        "city": "Kalyan",
+        "salt": "ee166795a4ad778053069457e7262d1d",
+        "passwordHash": "e5f2265a014a692514b373f57bfd9aad2d675716b7efe89cc0329088ee76633562e76de40d2620300e6650a69ae71679e0528427c5261790671c2de7761b8cab",
+        "createdAt": "2026-08-28T14:38:54.080Z"
+      }
+    ]
+  },
+  "driverRoutes": {
+    "DRV-101": [
+      {
+        "index": 1,
+        "label": "Point 1",
+        "lat": 19.231907121356908,
+        "lng": 73.13148543197795,
+        "savedAt": "2026-08-30T16:24:10.816Z"
+      },
+      {
+        "index": 2,
+        "label": "Point 2",
+        "lat": 19.22984706396665,
+        "lng": 73.12929779268319,
+        "savedAt": "2026-08-30T16:24:10.816Z"
+      },
+      {
+        "index": 3,
+        "label": "Point 3",
+        "lat": 19.229288056821865,
+        "lng": 73.12779647159854,
+        "savedAt": "2026-08-30T16:24:10.816Z"
+      },
+      {
+        "index": 4,
+        "label": "Point 4",
+        "lat": 19.228802954005427,
+        "lng": 73.12668672634665,
+        "savedAt": "2026-08-30T16:24:10.816Z"
+      },
+      {
+        "index": 5,
+        "label": "Point 5",
+        "lat": 19.22776611298232,
+        "lng": 73.12621488257719,
+        "savedAt": "2026-08-30T16:24:10.816Z"
+      },
+      {
+        "index": 6,
+        "label": "Point 6",
+        "lat": 19.226388549669764,
+        "lng": 73.12621488257719,
+        "savedAt": "2026-08-30T16:24:10.816Z"
+      },
+      {
+        "index": 7,
+        "label": "Point 7",
+        "lat": 19.224241148527934,
+        "lng": 73.12690120078729,
+        "savedAt": "2026-08-30T16:24:10.816Z"
+      },
+      {
+        "index": 8,
+        "label": "Point 8",
+        "lat": 19.22480838929314,
+        "lng": 73.13033279183789,
+        "savedAt": "2026-08-30T16:24:10.816Z"
+      },
+      {
+        "index": 9,
+        "label": "Point 9",
+        "lat": 19.224889423528303,
+        "lng": 73.13312095956651,
+        "savedAt": "2026-08-30T16:24:10.816Z"
+      },
+      {
+        "index": 10,
+        "label": "Point 10",
+        "lat": 19.22707733276997,
+        "lng": 73.13320674934279,
+        "savedAt": "2026-08-30T16:24:10.816Z"
+      },
+      {
+        "index": 11,
+        "label": "Point 11",
+        "lat": 19.22934624491006,
+        "lng": 73.13342122378344,
+        "savedAt": "2026-08-30T16:24:10.816Z"
+      },
+      {
+        "index": 12,
+        "label": "Point 12",
+        "lat": 19.231169455169503,
+        "lng": 73.13393596244102,
+        "savedAt": "2026-08-30T16:24:10.816Z"
+      }
+    ]
+  },
+  "dailyRouteSnapshots": {
+    "DRV-101": {
+      "2026-09-10": {
+        "driverId": "DRV-101",
+        "routeDate": "2026-09-10",
+        "collectionPoints": [
+          {
+            "lat": 19.231907121356908,
+            "lng": 73.13148543197795,
+            "label": "Point 1"
+          },
+          {
+            "lat": 19.22984706396665,
+            "lng": 73.12929779268319,
+            "label": "Point 2"
+          },
+          {
+            "lat": 19.229288056821865,
+            "lng": 73.12779647159854,
+            "label": "Point 3"
+          },
+          {
+            "lat": 19.228802954005427,
+            "lng": 73.12668672634665,
+            "label": "Point 4"
+          },
+          {
+            "lat": 19.22776611298232,
+            "lng": 73.12621488257719,
+            "label": "Point 5"
+          },
+          {
+            "lat": 19.226388549669764,
+            "lng": 73.12621488257719,
+            "label": "Point 6"
+          },
+          {
+            "lat": 19.224241148527934,
+            "lng": 73.12690120078729,
+            "label": "Point 7"
+          },
+          {
+            "lat": 19.22480838929314,
+            "lng": 73.13033279183789,
+            "label": "Point 8"
+          },
+          {
+            "lat": 19.224889423528303,
+            "lng": 73.13312095956651,
+            "label": "Point 9"
+          },
+          {
+            "lat": 19.22707733276997,
+            "lng": 73.13320674934279,
+            "label": "Point 10"
+          },
+          {
+            "lat": 19.22934624491006,
+            "lng": 73.13342122378344,
+            "label": "Point 11"
+          },
+          {
+            "lat": 19.231169455169503,
+            "lng": 73.13393596244102,
+            "label": "Point 12"
+          }
+        ],
+        "routeStatus": "locked",
+        "optimizedStops": [
+          {
+            "label": "Point 1",
+            "lat": 19.231907121356908,
+            "lng": 73.13148543197795,
+            "type": "collection"
+          },
+          {
+            "label": "Point 12",
+            "lat": 19.231169455169503,
+            "lng": 73.13393596244102,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 11",
+            "lat": 19.22934624491006,
+            "lng": 73.13342122378344,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 10",
+            "lat": 19.22707733276997,
+            "lng": 73.13320674934279,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 9",
+            "lat": 19.224889423528303,
+            "lng": 73.13312095956651,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 8",
+            "lat": 19.22480838929314,
+            "lng": 73.13033279183789,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 7",
+            "lat": 19.224241148527934,
+            "lng": 73.12690120078729,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Garbage Overflow - Kalyan Sector-1",
+            "lat": 19.222681,
+            "lng": 73.126768,
+            "type": "complaint",
+            "id": "COMP-392"
+          },
+          {
+            "label": "Point 6",
+            "lat": 19.226388549669764,
+            "lng": 73.12621488257719,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 5",
+            "lat": 19.22776611298232,
+            "lng": 73.12621488257719,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 4",
+            "lat": 19.228802954005427,
+            "lng": 73.12668672634665,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 3",
+            "lat": 19.229288056821865,
+            "lng": 73.12779647159854,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 2",
+            "lat": 19.22984706396665,
+            "lng": 73.12929779268319,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Garbage Overflow - Kalyan Sector-1",
+            "lat": 19.232544,
+            "lng": 73.135684,
+            "type": "complaint",
+            "id": "COMP-573"
+          }
+        ],
+        "totalDistance": "7.26 km",
+        "estimatedTime": "15 mins",
+        "fuelSavings": "22%",
+        "createdAt": "2026-09-10T16:05:51.344Z",
+        "lockedAt": "2026-09-10T16:06:00.944Z"
+      },
+      "2026-09-11": {
+        "driverId": "DRV-101",
+        "routeDate": "2026-09-11",
+        "collectionPoints": [
+          {
+            "lat": 19.231907121356908,
+            "lng": 73.13148543197795,
+            "label": "Point 1"
+          },
+          {
+            "lat": 19.22984706396665,
+            "lng": 73.12929779268319,
+            "label": "Point 2"
+          },
+          {
+            "lat": 19.229288056821865,
+            "lng": 73.12779647159854,
+            "label": "Point 3"
+          },
+          {
+            "lat": 19.228802954005427,
+            "lng": 73.12668672634665,
+            "label": "Point 4"
+          },
+          {
+            "lat": 19.22776611298232,
+            "lng": 73.12621488257719,
+            "label": "Point 5"
+          },
+          {
+            "lat": 19.226388549669764,
+            "lng": 73.12621488257719,
+            "label": "Point 6"
+          },
+          {
+            "lat": 19.224241148527934,
+            "lng": 73.12690120078729,
+            "label": "Point 7"
+          },
+          {
+            "lat": 19.22480838929314,
+            "lng": 73.13033279183789,
+            "label": "Point 8"
+          },
+          {
+            "lat": 19.224889423528303,
+            "lng": 73.13312095956651,
+            "label": "Point 9"
+          },
+          {
+            "lat": 19.22707733276997,
+            "lng": 73.13320674934279,
+            "label": "Point 10"
+          },
+          {
+            "lat": 19.22934624491006,
+            "lng": 73.13342122378344,
+            "label": "Point 11"
+          },
+          {
+            "lat": 19.231169455169503,
+            "lng": 73.13393596244102,
+            "label": "Point 12"
+          }
+        ],
+        "routeStatus": "draft",
+        "optimizedStops": [
+          {
+            "label": "Point 1",
+            "lat": 19.231907121356908,
+            "lng": 73.13148543197795,
+            "type": "collection"
+          },
+          {
+            "label": "Point 12",
+            "lat": 19.231169455169503,
+            "lng": 73.13393596244102,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 11",
+            "lat": 19.22934624491006,
+            "lng": 73.13342122378344,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 10",
+            "lat": 19.22707733276997,
+            "lng": 73.13320674934279,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 9",
+            "lat": 19.224889423528303,
+            "lng": 73.13312095956651,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 8",
+            "lat": 19.22480838929314,
+            "lng": 73.13033279183789,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 7",
+            "lat": 19.224241148527934,
+            "lng": 73.12690120078729,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Garbage Overflow - Kalyan Sector-1",
+            "lat": 19.222681,
+            "lng": 73.126768,
+            "type": "complaint",
+            "id": "COMP-392"
+          },
+          {
+            "label": "Point 6",
+            "lat": 19.226388549669764,
+            "lng": 73.12621488257719,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 5",
+            "lat": 19.22776611298232,
+            "lng": 73.12621488257719,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 4",
+            "lat": 19.228802954005427,
+            "lng": 73.12668672634665,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 3",
+            "lat": 19.229288056821865,
+            "lng": 73.12779647159854,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 2",
+            "lat": 19.22984706396665,
+            "lng": 73.12929779268319,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Garbage Overflow - Kalyan Sector-1",
+            "lat": 19.232544,
+            "lng": 73.135684,
+            "type": "complaint",
+            "id": "COMP-573"
+          }
+        ],
+        "totalDistance": "7.26 km",
+        "estimatedTime": "15 mins",
+        "fuelSavings": "15%",
+        "createdAt": "2026-09-11T05:18:30.636Z",
+        "lockedAt": null
+      }
+    }
+  }
+}
