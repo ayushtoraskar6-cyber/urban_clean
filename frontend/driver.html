@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Workspace - UrbanClean</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-weight/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet.js CSS for Interactive Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Custom CSS Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-leaf text-gradient"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>UrbanClean</h1>
+                    <p>Smart City. Clean City.</p>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item">
+                    <i class="fa-solid fa-house"></i> Guest Dashboard
+                </a>
+                <a href="citizen.html" class="nav-item disabled" title="Login as Citizen to access">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Report Complaint
+                </a>
+                <a href="citizen.html" class="nav-item disabled" title="Login as Citizen to access">
+                    <i class="fa-solid fa-magnifying-glass-location"></i> Track Complaint
+                </a>
+                <a href="driver.html" class="nav-item active">
+                    <i class="fa-solid fa-route"></i> Driver Routes
+                </a>
+                <a href="admin.html" class="nav-item disabled" title="Login as Admin to access">
+                    <i class="fa-solid fa-chart-line"></i> Admin Dashboard
+                </a>
+            </nav>
+
+            <div class="sidebar-footer-card">
+                <div class="footer-card-illustration">
+                    <div class="trash-bin blue-bin">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </div>
+                    <div class="trash-bin green-bin">
+                        <i class="fa-solid fa-recycle"></i>
+                    </div>
+                </div>
+                <h3>Keep Your City Clean</h3>
+                <p>Use bins, don't litter. A clean city is a healthy city.</p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top bar -->
+            <header class="topbar">
+                <div class="location-selector">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <select id="state-select">
+                        <option value="Maharashtra">Maharashtra</option>
+                        <option value="Karnataka">Karnataka</option>
+                        <option value="Delhi">Delhi</option>
+                    </select>
+                    <span class="chevron">&rsaquo;</span>
+                    <select id="district-select">
+                        <option value="Mumbai">Mumbai</option>
+                    </select>
+                    <span class="chevron">&rsaquo;</span>
+                    <select id="city-select">
+                        <option value="Bandra">Bandra</option>
+                        <option value="Khar">Khar</option>
+                        <option value="Kurla">Kurla</option>
+                    </select>
+                </div>
+
+                <div class="topbar-actions">
+                    <div class="notification-bell">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="bell-badge"></span>
+                    </div>
+                    
+                    <div class="user-profile-widget" id="user-profile-widget">
+                        <!-- Filled by script.js -->
+                    </div>
+                </div>
+            </header>
+
+            <!-- View Wrapper -->
+            <div class="view-wrapper">
+                <section id="driver-route-section" class="view-section active">
+                    <div class="section-header-box">
+                        <h2>Driver Route Optimization Portal</h2>
+                        <p>Enable GPS, configure point-to-point routes, optimize for fuel efficiency, and complete cleanup jobs.</p>
+                    </div>
+
+                    <div class="driver-portal-layout">
+                        <!-- Left Panel: Driver Navigation and Tasks -->
+                        <div class="driver-left-controls">
+                            <!-- Driver Status Card -->
+                            <div class="card driver-status-card">
+                                <div class="driver-avatar-row">
+                                    <div class="driver-avatar">
+                                        <i class="fa-solid fa-truck-monster"></i>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <h3 id="driver-name-display">Ramesh Kumar</h3>
+                                        <div style="display: flex; gap: 6px; align-items: center; margin-top: 4px;">
+                                            <span class="badge badge-success"><i class="fa-solid fa-circle"></i> On Duty</span>
+                                            <span class="badge badge-warning" id="route-status-badge">Draft Route</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="route-selectors form-group" style="margin-top: 10px;">
+                                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;" id="route-info-msg">
+                                        <i class="fa-solid fa-info-circle"></i> Pin collection points, optimize route, then click <strong>Start Shift / Lock Today's Route</strong>.
+                                    </p>
+                                    <div id="route-lock-notice" style="display: none; margin-top: 8px; padding: 10px 12px; background: rgba(245, 158, 11, 0.12); border: 1px solid var(--warning); border-radius: 6px; font-size: 0.8rem; color: var(--text-primary);">
+                                        <i class="fa-solid fa-lock" style="color: var(--warning);"></i> <strong>Today's route is locked.</strong> New nearby complaints are scheduled for tomorrow.
+                                    </div>
+                                </div>
+                                <div class="fuel-efficiency-box">
+                                    <div class="fuel-metric">
+                                        <span class="metric-val text-gradient" id="fuel-savings-percent">28%</span>
+                                        <span class="metric-lbl">Fuel Efficiency Saved</span>
+                                    </div>
+                                    <div class="fuel-metric">
+                                        <span class="metric-val" id="fuel-distance">12.4 km</span>
+                                        <span class="metric-lbl">Total Optimized Distance</span>
+                                    </div>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <button class="btn btn-primary btn-block" id="btn-optimize-route">
+                                        <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Optimized Route
+                                    </button>
+                                    <button class="btn btn-warning btn-block" id="btn-lock-route" style="font-weight: 700;">
+                                        <i class="fa-solid fa-lock"></i> Start Shift / Lock Today's Route
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Driver Tasks / Route Points -->
+                            <div class="card driver-tasks-card">
+                                <div class="card-header">
+                                    <h3>Cleanup Queue on Route</h3>
+                                    <span class="badge" id="driver-queue-count">0 Stops</span>
+                                </div>
+                                <div class="driver-stops-list" id="driver-stops-queue">
+                                    <!-- Dynamic Stop Cards -->
+                                </div>
+                            </div>
+
+                            <!-- Collection Points Manager Card -->
+                            <div class="card" style="margin-top: 16px;">
+                                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <h3><i class="fa-solid fa-map-pin" style="color: var(--primary);"></i> Collection Points</h3>
+                                        <p style="margin: 0; font-size: 0.8rem; color: var(--text-secondary);">Click map to pin stops • Max 40</p>
+                                    </div>
+                                    <span class="badge badge-primary" id="cp-counter-badge">0 / 40</span>
+                                </div>
+                                <div style="padding: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+                                    <button class="btn btn-primary" id="btn-enter-pin-mode" style="flex: 1; font-size: 0.85rem;">
+                                        <i class="fa-solid fa-crosshairs"></i> Add Point
+                                    </button>
+                                    <button class="btn" id="btn-clear-all-points" style="flex: 1; font-size: 0.85rem; background: var(--surface-elevated); color: var(--text-secondary); border: 1px solid var(--border);">
+                                        <i class="fa-solid fa-trash"></i> Clear All
+                                    </button>
+                                </div>
+                                <div id="collection-points-list" style="max-height: 180px; overflow-y: auto; padding: 0 12px 12px;">
+                                    <p style="text-align: center; font-size: 0.85rem; padding: 16px 0; color: var(--text-secondary);" id="cp-empty-msg">No points added. Click <strong>Add Point</strong> then tap the map.</p>
+                                </div>
+                                <div style="padding: 0 12px 12px;">
+                                    <button class="btn btn-success btn-block" id="btn-save-route" style="font-size: 0.85rem;">
+                                        <i class="fa-solid fa-floppy-disk"></i> Save Route to Server
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Tomorrow's Pending Queue Card -->
+                            <div class="card" id="tomorrow-queue-card" style="margin-top: 16px;">
+                                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <h3><i class="fa-solid fa-calendar-day" style="color: var(--warning);"></i> Tomorrow's Queue</h3>
+                                        <p style="margin: 0; font-size: 0.8rem; color: var(--text-secondary);">Complaints reported after route lock</p>
+                                    </div>
+                                    <span class="badge badge-warning" id="tomorrow-queue-badge">0 Pending</span>
+                                </div>
+                                <div id="tomorrow-queue-list" style="max-height: 180px; overflow-y: auto; padding: 12px;">
+                                    <p style="text-align: center; font-size: 0.85rem; color: var(--text-secondary);">No complaints scheduled for tomorrow.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Driver Map & Cleanup Actions -->
+                        <div class="driver-right-panel">
+                            <!-- Map Card -->
+                            <div class="card map-card driver-map-card">
+                                <div class="map-header">
+                                    <h3>Optimized Route Map</h3>
+                                    <div class="map-badge" id="driver-gps-status"><i class="fa-solid fa-location-crosshairs animate-pulse text-success"></i> GPS Tracking Live</div>
+                                </div>
+                                <div class="map-body-wrapper driver-map-height">
+                                    <div id="driver-leaflet-map" class="leaflet-map-element"></div>
+                                </div>
+                            </div>
+
+                            <!-- Active Job Complete Section -->
+                            <div class="card driver-action-card disabled-card" id="driver-action-card">
+                                <div class="card-header">
+                                    <h3>Update Cleanup Progress</h3>
+                                    <span class="badge badge-warning" id="active-job-id">No active job selected</span>
+                                </div>
+                                <div class="driver-action-body">
+                                    <h4 id="active-job-title">Select a garbage pin on your route queue to begin cleanup.</h4>
+                                    <p id="active-job-desc">Once you reach the location, upload a photo of the cleaned site to resolve the issue.</p>
+                                    
+                                    <form id="driver-cleanup-form" class="mt-3">
+                                        <div class="form-group">
+                                            <label for="cleanup-photo">Upload Cleaned Proof Photo <span class="required">*</span></label>
+                                            <div class="file-dropzone" id="driver-file-dropzone">
+                                                <input type="file" id="cleanup-photo" accept="image/*" required style="display: none;">
+                                                <div class="dropzone-prompt" id="driver-dropzone-prompt">
+                                                    <i class="fa-solid fa-camera"></i>
+                                                    <p>Capture or upload <span>cleaned site photo</span></p>
+                                                </div>
+                                                <div class="file-preview-area" id="driver-preview-area" style="display: none;">
+                                                    <img id="img-driver-preview" src="" alt="Clean proof">
+                                                    <button type="button" class="btn-remove-file" id="btn-driver-clear-upload">
+                                                        <i class="fa-solid fa-circle-xmark"></i> Remove
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-success btn-block" id="btn-mark-cleanup-complete" disabled>
+                                            <i class="fa-solid fa-circle-check"></i> Mark as Completed & Upload Proof
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Info Toast Notification -->
+    <div class="toast-notification" id="app-toast">
+        <span class="toast-msg">Hello World</span>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Custom Application JS -->
+    <script src="script.js"></script>
+</body>
+</html>

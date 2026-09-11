@@ -1,0 +1,1642 @@
+/**
+ * UrbanClean - Refactored script.js for Fullstack Express API Integration
+ * Manages: state async synchronization, role security validation,
+ * Leaflet map renderings, GPS captures, Express API fetch requests, and uploads.
+ */
+
+const STATE = {
+    user: null, // { role: 'citizen'|'driver'|'admin', name: '', id: '' }
+    location: {
+        state: 'Maharashtra',
+        district: 'Mumbai',
+        city: 'Bandra'
+    },
+    complaints: [],
+    drivers: [],
+    maps: {
+        dashboard: null,
+        selector: null,
+        driver: null,
+        admin: null
+    },
+    markers: {
+        dashboard: [],
+        selector: null,
+        driver: [],
+        admin: []
+    },
+    polylines: {
+        driver: null,
+        admin: null
+    },
+    tempUploadBase64: null,
+    tempDriverUploadBase64: null,
+    activeDriverJob: null,
+    selectedAdminDriver: null
+};
+
+// Node coordinate configurations
+const CITY_COORDINATES = {
+    'Bandra': { lat: 19.0544, lng: 72.8295, zoom: 14 },
+    'Khar': { lat: 19.0682, lng: 72.8342, zoom: 14 },
+    'Kurla': { lat: 19.0724, lng: 72.8791, zoom: 14 },
+    'Mumbai': { lat: 19.065, lng: 72.845, zoom: 13 },
+    'Kalyan': { lat: 19.2402, lng: 73.1305, zoom: 14 },
+    'Thane': { lat: 19.2183, lng: 72.9781, zoom: 13 }
+};
+
+// Maharashtra's 36 districts and their principal cities/towns.  The header
+// controls are generated from this single source on every portal page.
+const MAHARASHTRA_LOCATIONS = {
+    'Ahilyanagar': ['Ahilyanagar', 'Sangamner', 'Shirdi', 'Kopargaon', 'Shrirampur', 'Rahata'],
+    'Akola': ['Akola', 'Akot', 'Balapur', 'Murtizapur'],
+    'Amravati': ['Amravati', 'Achalpur', 'Chandur Bazaar', 'Daryapur', 'Morshi'],
+    'Bhandara': ['Bhandara', 'Tumsar', 'Pauni', 'Sakoli'],
+    'Beed': ['Beed', 'Ambajogai', 'Georai', 'Majalgaon', 'Parli'],
+    'Buldhana': ['Buldhana', 'Chikhli', 'Deulgaon Raja', 'Khamgaon', 'Malkapur', 'Shegaon'],
+    'Chandrapur': ['Chandrapur', 'Ballarpur', 'Bhadrawati', 'Rajura', 'Warora'],
+    'Chhatrapati Sambhajinagar': ['Chhatrapati Sambhajinagar', 'Aurangabad', 'Kannad', 'Paithan', 'Sillod', 'Vaijapur'],
+    'Dharashiv': ['Dharashiv', 'Osmanabad', 'Bhoom', 'Kalamb', 'Tuljapur', 'Umarga'],
+    'Dhule': ['Dhule', 'Shirpur', 'Sindkheda'],
+    'Gadchiroli': ['Gadchiroli', 'Aheri', 'Armori', 'Desaiganj', 'Kurkheda'],
+    'Gondia': ['Gondia', 'Amgaon', 'Tirora'],
+    'Hingoli': ['Hingoli', 'Basmath', 'Kalamnuri'],
+    'Jalgaon': ['Jalgaon', 'Amalner', 'Bhusawal', 'Chalisgaon', 'Chopda', 'Pachora', 'Yawal'],
+    'Jalna': ['Jalna', 'Ambad', 'Bhokardan', 'Partur'],
+    'Kolhapur': ['Kolhapur', 'Gadhinglaj', 'Ichalkaranji', 'Kagal', 'Murgud', 'Panhala'],
+    'Latur': ['Latur', 'Ahmadpur', 'Ausa', 'Nilanga', 'Udgir'],
+    'Mumbai City': ['Mumbai', 'Bandra', 'Khar', 'Kurla', 'Dadar', 'Byculla', 'Colaba', 'Worli'],
+    'Mumbai Suburban': ['Andheri', 'Borivali', 'Goregaon', 'Jogeshwari', 'Malad', 'Mulund', 'Vile Parle'],
+    'Nagpur': ['Nagpur', 'Hingna', 'Kamptee', 'Katol', 'Narkhed', 'Ramtek'],
+    'Nanded': ['Nanded', 'Bhokar', 'Deglur', 'Kandhar', 'Kinwat', 'Loha'],
+    'Nandurbar': ['Nandurbar', 'Akkalkuwa', 'Navapur', 'Shahada', 'Taloda'],
+    'Nashik': ['Nashik', 'Igatpuri', 'Malegaon', 'Manmad', 'Sinnar', 'Yeola'],
+    'Palghar': ['Palghar', 'Dahanu', 'Jawhar', 'Vasai', 'Virar', 'Wada'],
+    'Parbhani': ['Parbhani', 'Gangakhed', 'Jintur', 'Manwath', 'Purna', 'Selu'],
+    'Pune': ['Pune', 'Alandi', 'Baramati', 'Chakan', 'Junnar', 'Lonavala', 'Pimpri-Chinchwad', 'Talegaon Dabhade'],
+    'Raigad': ['Alibag', 'Karjat', 'Khopoli', 'Mahad', 'Panvel', 'Pen', 'Uran'],
+    'Ratnagiri': ['Ratnagiri', 'Chiplun', 'Dapoli', 'Khed', 'Rajapur'],
+    'Sangli': ['Sangli', 'Ashta', 'Islampur', 'Miraj', 'Tasgaon', 'Vita'],
+    'Satara': ['Satara', 'Karad', 'Mahabaleshwar', 'Phaltan', 'Wai'],
+    'Sindhudurg': ['Oros', 'Kankavli', 'Kudal', 'Malvan', 'Sawantwadi', 'Vengurla'],
+    'Solapur': ['Solapur', 'Akkalkot', 'Barshi', 'Pandharpur', 'Sangola'],
+    'Thane': ['Thane', 'Bhiwandi', 'Kalyan', 'Mira-Bhayandar', 'Murbad', 'Ulhasnagar'],
+    'Wardha': ['Wardha', 'Arvi', 'Deoli', 'Hinganghat', 'Pulgaon'],
+    'Washim': ['Washim', 'Karanja', 'Mangrulpir', 'Risod'],
+    'Yavatmal': ['Yavatmal', 'Darwha', 'Digras', 'Pusad', 'Wani']
+};
+
+const DISTRICT_COORDINATES = {
+    'Ahilyanagar': [19.09, 74.75], 'Akola': [20.70, 77.00], 'Amravati': [20.93, 77.75],
+    'Bhandara': [21.17, 79.65], 'Beed': [18.99, 75.76], 'Buldhana': [20.53, 76.18],
+    'Chandrapur': [19.96, 79.30], 'Chhatrapati Sambhajinagar': [19.88, 75.34], 'Dharashiv': [18.19, 76.04],
+    'Dhule': [20.90, 74.78], 'Gadchiroli': [20.18, 80.00], 'Gondia': [21.46, 80.19],
+    'Hingoli': [19.72, 77.15], 'Jalgaon': [21.01, 75.56], 'Jalna': [19.84, 75.88],
+    'Kolhapur': [16.70, 74.24], 'Latur': [18.41, 76.57], 'Mumbai City': [19.08, 72.88],
+    'Mumbai Suburban': [19.15, 72.85], 'Nagpur': [21.15, 79.09], 'Nanded': [19.14, 77.32],
+    'Nandurbar': [21.37, 74.24], 'Nashik': [20.01, 73.79], 'Palghar': [19.70, 72.77],
+    'Parbhani': [19.27, 76.77], 'Pune': [18.52, 73.86], 'Raigad': [18.64, 72.87],
+    'Ratnagiri': [16.99, 73.31], 'Sangli': [16.85, 74.58], 'Satara': [17.68, 73.99],
+    'Sindhudurg': [16.05, 73.47], 'Solapur': [17.66, 75.91], 'Thane': [19.22, 72.98],
+    'Wardha': [20.74, 78.60], 'Washim': [20.11, 77.14], 'Yavatmal': [20.39, 78.13]
+};
+
+const ROUTE_NODES = {
+    'Bandra Depot': { lat: 19.0518, lng: 72.8278, label: 'Bandra Reclamation Depot' },
+    'Khar Depot': { lat: 19.0690, lng: 72.8310, label: 'Khar Link Road Depot' },
+    'Kurla Depot': { lat: 19.0700, lng: 72.8750, label: 'Kurla West Depot' },
+    'Deonar Landfill': { lat: 19.0583, lng: 72.9231, label: 'Deonar Dumping Ground' },
+    'Kanjurmarg Landfill': { lat: 19.1245, lng: 72.9350, label: 'Kanjurmarg Disposal Yard' }
+};
+
+const CURRENT_PAGE = window.location.pathname.split('/').pop() || 'index.html';
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadAppState();
+    verifyPageSecurity();
+    setupGlobalHeader();
+    initializePageSpecificLogic();
+    setupExperienceEnhancements();
+});
+
+// ----------------------------------------------------
+// STATE PERSISTENCE (FETCH FROM BACKEND API)
+// ----------------------------------------------------
+
+async function loadAppState() {
+    // 1. Session user
+    const savedUser = localStorage.getItem('urban_clean_user');
+    if (savedUser) {
+        STATE.user = JSON.parse(savedUser);
+    }
+
+    // 2. Active location — if admin user has pre-assigned city, lock to it
+    const savedLoc = localStorage.getItem('urban_clean_location');
+    if (savedLoc) {
+        STATE.location = JSON.parse(savedLoc);
+    }
+    // If logged-in user has location fields (e.g. Kalyan Admin), override location
+    if (STATE.user && STATE.user.state && STATE.user.district && STATE.user.city) {
+        STATE.location.state = STATE.user.state;
+        STATE.location.district = STATE.user.district;
+        STATE.location.city = STATE.user.city;
+        localStorage.setItem('urban_clean_location', JSON.stringify(STATE.location));
+    }
+
+    // 3. Fetch data from backend
+    await fetchComplaints();
+    await fetchDrivers();
+}
+
+async function fetchComplaints() {
+    try {
+        const res = await fetch('/api/complaints');
+        if (res.ok) {
+            STATE.complaints = await res.json();
+        } else {
+            console.error('Failed to fetch complaints');
+        }
+    } catch (err) {
+        console.error('Error connecting to backend API', err);
+    }
+}
+
+async function fetchDrivers() {
+    try {
+        const res = await fetch('/api/drivers');
+        if (res.ok) {
+            STATE.drivers = await res.json();
+        } else {
+            console.error('Failed to fetch drivers');
+        }
+    } catch (err) {
+        console.error('Error connecting to backend API', err);
+    }
+}
+
+function saveLocationToStorage() {
+    localStorage.setItem('urban_clean_location', JSON.stringify(STATE.location));
+}
+
+// Security checks
+function verifyPageSecurity() {
+    if (CURRENT_PAGE === 'citizen.html') {
+        if (!STATE.user || STATE.user.role !== 'citizen') {
+            window.location.href = 'login.html?redirect=citizen.html';
+        }
+    } else if (CURRENT_PAGE === 'driver.html') {
+        if (!STATE.user || STATE.user.role !== 'driver') {
+            window.location.href = 'login.html?redirect=driver.html';
+        }
+    } else if (CURRENT_PAGE === 'admin.html') {
+        if (!STATE.user || STATE.user.role !== 'admin') {
+            window.location.href = 'login.html?redirect=admin.html';
+        }
+    }
+}
+
+// Global Nav configurations
+function setupGlobalHeader() {
+    const profileWidget = document.getElementById('user-profile-widget');
+    if (!profileWidget) return;
+
+    if (STATE.user) {
+        let roleLabel = 'Citizen';
+        let badgeClass = 'badge-info';
+        if (STATE.user.role === 'driver') { roleLabel = 'Driver'; badgeClass = 'badge-primary'; }
+        if (STATE.user.role === 'admin') { roleLabel = 'Admin'; badgeClass = 'badge-danger'; }
+
+        profileWidget.innerHTML = `
+            <div class="user-profile-widget" style="cursor: pointer;">
+                <div class="admin-drv-avatar text-gradient" style="font-weight: 700; width: 40px; height: 40px; border: 2px solid var(--primary-blue);">
+                    ${STATE.user.name.charAt(0)}
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-size: 0.85rem; font-weight: 700;">${STATE.user.name}</span>
+                    <span class="badge ${badgeClass}" style="padding: 2px 6px; font-size: 0.6rem; transform: scale(0.9); margin-top: 2px; align-self: flex-start;">${roleLabel}</span>
+                </div>
+                <button class="btn btn-secondary btn-sm" id="btn-logout" style="margin-left: 8px;" title="Sign Out">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        `;
+
+        document.getElementById('btn-logout').addEventListener('click', logoutUser);
+
+        document.querySelectorAll('.nav-menu .nav-item').forEach(item => {
+            const href = item.getAttribute('href');
+            if (href === 'citizen.html' && STATE.user.role === 'citizen') {
+                item.classList.remove('disabled');
+                item.removeAttribute('title');
+            } else if (href === 'driver.html' && STATE.user.role === 'driver') {
+                item.classList.remove('disabled');
+                item.removeAttribute('title');
+            } else if (href === 'admin.html' && STATE.user.role === 'admin') {
+                item.classList.remove('disabled');
+                item.removeAttribute('title');
+            }
+        });
+    } else {
+        profileWidget.innerHTML = `
+            <a href="login.html" class="btn btn-primary">
+                <i class="fa-regular fa-user"></i> Login / Sign Up
+            </a>
+        `;
+    }
+
+    setupLocationSelectors();
+}
+
+function setupExperienceEnhancements() {
+    const savedContrast = localStorage.getItem('urban_clean_high_contrast') === 'true';
+    document.body.classList.toggle('high-contrast', savedContrast);
+
+    if (!document.getElementById('accessibility-toggle')) {
+        const accessibilityButton = document.createElement('button');
+        accessibilityButton.id = 'accessibility-toggle';
+        accessibilityButton.className = 'accessibility-toggle';
+        accessibilityButton.type = 'button';
+        accessibilityButton.title = 'Toggle high contrast';
+        accessibilityButton.setAttribute('aria-label', 'Toggle high contrast');
+        accessibilityButton.innerHTML = '<i class="fa-solid fa-circle-half-stroke"></i>';
+        accessibilityButton.addEventListener('click', () => {
+            const active = document.body.classList.toggle('high-contrast');
+            localStorage.setItem('urban_clean_high_contrast', active);
+            showToast(active ? 'High contrast enabled.' : 'High contrast disabled.', 'info');
+        });
+        document.body.appendChild(accessibilityButton);
+    }
+
+    if (!document.getElementById('quick-report-action')) {
+        const reportButton = document.createElement('button');
+        reportButton.id = 'quick-report-action';
+        reportButton.className = 'quick-report-action';
+        reportButton.type = 'button';
+        reportButton.innerHTML = '<i class="fa-solid fa-plus"></i><span>Report issue</span>';
+        reportButton.addEventListener('click', redirectToReportPage);
+        document.body.appendChild(reportButton);
+    }
+
+    if (!document.querySelector('.mobile-nav')) {
+        const mobileNav = document.createElement('nav');
+        mobileNav.className = 'mobile-nav';
+        mobileNav.setAttribute('aria-label', 'Quick navigation');
+        mobileNav.innerHTML = `
+            <a href="index.html"><i class="fa-solid fa-house"></i><span>Home</span></a>
+            <a href="citizen.html"><i class="fa-solid fa-bullhorn"></i><span>Report</span></a>
+            <a href="driver.html"><i class="fa-solid fa-truck"></i><span>Route</span></a>
+            <a href="admin.html"><i class="fa-solid fa-chart-simple"></i><span>Admin</span></a>`;
+        document.body.appendChild(mobileNav);
+    }
+}
+
+function setupLocationSelectors() {
+    const stateSelect = document.getElementById('state-select');
+    const districtSelect = document.getElementById('district-select');
+    const citySelect = document.getElementById('city-select');
+    if (!stateSelect || !districtSelect || !citySelect) return;
+
+    // This version of UrbanClean serves Maharashtra, so reset any old saved
+    // location to a valid district/city before building the dropdown options.
+    STATE.location.state = 'Maharashtra';
+    if (!MAHARASHTRA_LOCATIONS[STATE.location.district]) STATE.location.district = 'Mumbai City';
+    if (!MAHARASHTRA_LOCATIONS[STATE.location.district].includes(STATE.location.city)) {
+        STATE.location.city = MAHARASHTRA_LOCATIONS[STATE.location.district][0];
+    }
+
+    stateSelect.innerHTML = '<option value="Maharashtra">Maharashtra</option>';
+    districtSelect.innerHTML = Object.keys(MAHARASHTRA_LOCATIONS)
+        .map(district => `<option value="${district}">${district}</option>`).join('');
+    districtSelect.value = STATE.location.district;
+
+    const renderCities = () => {
+        citySelect.innerHTML = MAHARASHTRA_LOCATIONS[STATE.location.district]
+            .map(city => `<option value="${city}">${city}</option>`).join('');
+        citySelect.value = STATE.location.city;
+    };
+    renderCities();
+
+    districtSelect.addEventListener('change', () => {
+        STATE.location.district = districtSelect.value;
+        STATE.location.city = MAHARASHTRA_LOCATIONS[STATE.location.district][0];
+        renderCities();
+        applyLocationChange();
+    });
+    citySelect.addEventListener('change', () => {
+        STATE.location.city = citySelect.value;
+        applyLocationChange();
+    });
+}
+
+function applyLocationChange() {
+    saveLocationToStorage();
+    showToast(`Location changed to: ${STATE.location.city}, ${STATE.location.district}`, 'info');
+    updateMapLocationViewports();
+
+    if (CURRENT_PAGE === 'index.html' || CURRENT_PAGE === '') {
+        renderDashboardLists();
+        renderOverviewStats();
+    } else if (CURRENT_PAGE === 'driver.html') {
+        renderDriverPortal();
+    } else if (CURRENT_PAGE === 'admin.html') {
+        renderAdminPortal();
+    }
+}
+
+function getLocationCoordinates() {
+    return CITY_COORDINATES[STATE.location.city]
+        || (() => {
+            const [lat, lng] = DISTRICT_COORDINATES[STATE.location.district] || DISTRICT_COORDINATES['Mumbai City'];
+            return { lat, lng, zoom: 12 };
+        })();
+}
+
+function logoutUser() {
+    localStorage.removeItem('urban_clean_user');
+    showToast('Logged out successfully.', 'info');
+    setTimeout(() => {
+        window.location.href = 'index.html';
+    }, 800);
+}
+
+// Initialize logics
+function initializePageSpecificLogic() {
+    if (CURRENT_PAGE === 'index.html' || CURRENT_PAGE === '') {
+        initLandingPage();
+    } else if (CURRENT_PAGE === 'login.html') {
+        initLoginPage();
+    } else if (CURRENT_PAGE === 'citizen.html') {
+        initCitizenPage();
+    } else if (CURRENT_PAGE === 'driver.html') {
+        initDriverPage();
+    } else if (CURRENT_PAGE === 'admin.html') {
+        initAdminPage();
+    }
+}
+
+// 1. Landing view logic
+function initLandingPage() {
+    renderOverviewStats();
+    renderDashboardLists();
+    
+    const locationData = getLocationCoordinates();
+    if (document.getElementById('main-leaflet-map')) {
+        STATE.maps.dashboard = L.map('main-leaflet-map').setView([locationData.lat, locationData.lng], locationData.zoom);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(STATE.maps.dashboard);
+        
+        drawAllMapMarkers();
+    }
+}
+
+// 2. Login Logic
+function initLoginPage() {
+    let mode = 'login';
+    const roleInput = document.getElementById('login-role-input');
+    const helper = document.getElementById('login-credentials-helper');
+    const title = document.getElementById('auth-title');
+    const subtitle = document.getElementById('auth-subtitle');
+    const submitButton = document.getElementById('auth-submit-button');
+    const signupFields = document.querySelectorAll('.signup-only');
+
+    const updateForm = () => {
+        const role = roleInput.value;
+        const isSignup = mode === 'signup';
+        const isAdmin = role === 'admin';
+        document.querySelectorAll('.auth-mode').forEach(button => {
+            button.classList.toggle('active', button.dataset.mode === mode);
+            button.hidden = isAdmin && button.dataset.mode === 'signup';
+        });
+        if (isAdmin && isSignup) mode = 'login';
+        signupFields.forEach(field => { field.hidden = !isSignup; });
+        title.textContent = isSignup ? `Create a ${role} account` : `Welcome back, ${role}`;
+        subtitle.textContent = isSignup ? 'Your UrbanClean account will be saved securely.' : 'Enter the credentials for your selected portal.';
+        submitButton.textContent = isSignup ? 'Create Account' : 'Log In';
+        helper.innerHTML = isAdmin
+            ? '<p>Administrator accounts are issued by the municipality. Please use your assigned credentials.</p>'
+            : isSignup
+                ? `<p>Create a separate ${role} account. Passwords must contain at least 8 characters.</p>`
+                : `<p>Sign in to access your ${role} portal.</p>`;
+        document.getElementById('login-name').required = isSignup;
+        document.getElementById('login-confirm-password').required = isSignup;
+        document.getElementById('login-password').autocomplete = isSignup ? 'new-password' : 'current-password';
+    };
+
+    document.querySelectorAll('.role-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+            document.querySelectorAll('.role-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            roleInput.value = pill.getAttribute('data-role');
+            if (roleInput.value === 'admin') mode = 'login';
+            updateForm();
+        });
+    });
+
+    document.querySelectorAll('.auth-mode').forEach(button => {
+        button.addEventListener('click', () => {
+            mode = button.dataset.mode;
+            updateForm();
+        });
+    });
+    updateForm();
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const role = roleInput.value;
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+        const name = document.getElementById('login-name').value.trim();
+        const confirmation = document.getElementById('login-confirm-password').value;
+        if (mode === 'signup' && password !== confirmation) {
+            showToast('Passwords do not match.', 'error');
+            return;
+        }
+
+        try {
+            const endpoint = mode === 'signup' ? '/api/signup' : '/api/login';
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role, email, password, name })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Unable to complete your request.');
+
+            localStorage.setItem('urban_clean_user', JSON.stringify(data.user));
+            showToast(`${mode === 'signup' ? 'Account created' : 'Welcome back'}, ${data.user.name}! Redirecting...`, 'success');
+            const redirect = new URLSearchParams(window.location.search).get('redirect');
+            setTimeout(() => {
+                window.location.href = redirect || `${data.user.role}.html`;
+            }, 700);
+        } catch (err) {
+            showToast(err.message || 'Failed to connect to the server.', 'error');
+        }
+    });
+}
+
+// 3. Citizen Logic
+function initCitizenPage() {
+    renderCitizenTrackList();
+
+    const bandra = getLocationCoordinates();
+    if (document.getElementById('selector-leaflet-map')) {
+        STATE.maps.selector = L.map('selector-leaflet-map').setView([bandra.lat, bandra.lng], bandra.zoom);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(STATE.maps.selector);
+
+        STATE.maps.selector.on('click', function (e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            document.getElementById('comp-lat').value = lat.toFixed(6);
+            document.getElementById('comp-lng').value = lng.toFixed(6);
+            document.getElementById('gps-status').innerHTML = `<span style="color: var(--primary-blue); font-weight: bold;"><i class="fa-solid fa-map-pin"></i> Marker Pin Placed</span>`;
+
+            if (STATE.markers.selector) {
+                STATE.markers.selector.setLatLng(e.latlng);
+            } else {
+                STATE.markers.selector = L.marker(e.latlng, { draggable: true }).addTo(STATE.maps.selector);
+                STATE.markers.selector.on('dragend', (event) => {
+                    const marker = event.target;
+                    const pos = marker.getLatLng();
+                    document.getElementById('comp-lat').value = pos.lat.toFixed(6);
+                    document.getElementById('comp-lng').value = pos.lng.toFixed(6);
+                });
+            }
+        });
+    }
+
+    document.getElementById('btn-use-gps').addEventListener('click', autoDetectGPS);
+
+    const dropzone = document.getElementById('file-dropzone');
+    const fileInput = document.getElementById('complaint-photo');
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.style.borderColor = 'var(--primary-blue)';
+    });
+    dropzone.addEventListener('dragleave', () => {
+        dropzone.style.borderColor = '#cbd5e1';
+    });
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.style.borderColor = '#cbd5e1';
+        handleFileSelect(e, 'citizen');
+    });
+    fileInput.addEventListener('change', (e) => handleFileSelect(e, 'citizen'));
+
+    document.getElementById('btn-clear-upload').addEventListener('click', (e) => {
+        e.stopPropagation();
+        STATE.tempUploadBase64 = null;
+        document.getElementById('file-preview-area').style.display = 'none';
+        document.querySelector('#file-dropzone .dropzone-prompt').style.display = 'block';
+        fileInput.value = '';
+    });
+
+    // Multipart form POST to backend!
+    document.getElementById('complaint-report-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const category = document.getElementById('complaint-type').value;
+        const description = document.getElementById('complaint-description').value;
+        const lat = parseFloat(document.getElementById('comp-lat').value);
+        const lng = parseFloat(document.getElementById('comp-lng').value);
+        const file = fileInput.files[0];
+
+        if (!category || !description || isNaN(lat) || isNaN(lng) || !file) {
+            showToast('Please fill all mandatory fields and upload a photo.', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('category', category);
+        formData.append('description', description);
+        formData.append('lat', lat);
+        formData.append('lng', lng);
+        formData.append('city', STATE.location.city);
+        formData.append('reportedBy', STATE.user ? STATE.user.name : 'Anonymous');
+        formData.append('photo', file); // Binary upload
+
+        try {
+            showToast('Uploading report to backend...', 'info');
+            const res = await fetch('/api/complaints', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (res.ok) {
+                const newComplaint = await res.json();
+                STATE.complaints.push(newComplaint);
+                
+                // Clear Form inputs
+                document.getElementById('complaint-report-form').reset();
+                STATE.tempUploadBase64 = null;
+                document.getElementById('file-preview-area').style.display = 'none';
+                document.querySelector('#file-dropzone .dropzone-prompt').style.display = 'block';
+                document.getElementById('gps-status').innerText = 'Not set (Click map or GPS)';
+                if (STATE.markers.selector) {
+                    STATE.maps.selector.removeLayer(STATE.markers.selector);
+                    STATE.markers.selector = null;
+                }
+
+                showToast('Complaint reported successfully!', 'success');
+                
+                // Reload state & list
+                await fetchComplaints();
+                renderCitizenTrackList();
+                toggleCitizenView(null, 'track');
+            } else {
+                showToast('Failed to save complaint on server.', 'error');
+            }
+        } catch (err) {
+            showToast('Error uploading complaint.', 'error');
+        }
+    });
+
+    document.getElementById('track-status-filter').addEventListener('change', renderCitizenTrackList);
+}
+
+// 4. Driver logic
+function initDriverPage() {
+    renderDriverPortal();
+
+    const bandra = getLocationCoordinates();
+    if (document.getElementById('driver-leaflet-map')) {
+        STATE.maps.driver = L.map('driver-leaflet-map').setView([bandra.lat, bandra.lng], bandra.zoom);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(STATE.maps.driver);
+
+        drawAllMapMarkers();
+    }
+
+    document.getElementById('btn-optimize-route').addEventListener('click', generateDriverOptimizedRoute);
+
+    // Collection Points: init state
+    STATE.collectionPoints = STATE.collectionPoints || [];
+    STATE.cpMarkers = STATE.cpMarkers || [];
+    STATE.pinModeActive = false;
+
+    // Wire collection point buttons
+    document.getElementById('btn-enter-pin-mode').addEventListener('click', togglePinMode);
+    document.getElementById('btn-clear-all-points').addEventListener('click', clearAllCollectionPoints);
+    document.getElementById('btn-save-route').addEventListener('click', saveDriverRoute);
+
+    // Load previously saved route from server
+    loadDriverRoute();
+
+    const drvDropzone = document.getElementById('driver-file-dropzone');
+    const drvFileInput = document.getElementById('cleanup-photo');
+
+    drvDropzone.addEventListener('click', () => drvFileInput.click());
+    drvFileInput.addEventListener('change', (e) => handleFileSelect(e, 'driver'));
+
+    document.getElementById('btn-driver-clear-upload').addEventListener('click', (e) => {
+        e.stopPropagation();
+        STATE.tempDriverUploadBase64 = null;
+        document.getElementById('driver-preview-area').style.display = 'none';
+        document.getElementById('driver-dropzone-prompt').style.display = 'block';
+        drvFileInput.value = '';
+        document.getElementById('btn-mark-cleanup-complete').setAttribute('disabled', 'true');
+    });
+
+    // Cleanup resolution PUT upload
+    document.getElementById('driver-cleanup-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const file = drvFileInput.files[0];
+        
+        if (!STATE.activeDriverJob || !file) {
+            showToast('Please capture cleanup verification photo.', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('photo', file);
+
+        try {
+            showToast('Submitting cleanup proof to server...', 'info');
+            const res = await fetch(`/api/complaints/${STATE.activeDriverJob.id}/resolve`, {
+                method: 'PUT',
+                body: formData
+            });
+
+            if (res.ok) {
+                showToast(`Job completed successfully! Uploaded verification.`, 'success');
+
+                // Reset forms
+                document.getElementById('driver-cleanup-form').reset();
+                STATE.tempDriverUploadBase64 = null;
+                document.getElementById('driver-preview-area').style.display = 'none';
+                document.getElementById('driver-dropzone-prompt').style.display = 'block';
+                document.getElementById('btn-mark-cleanup-complete').setAttribute('disabled', 'true');
+                STATE.activeDriverJob = null;
+
+                // Refresh state
+                await fetchComplaints();
+                renderDriverPortal();
+                drawAllMapMarkers();
+
+                // Recalculate route paths
+                const startSelect = document.getElementById('driver-route-start').value;
+                if (startSelect) generateDriverOptimizedRoute();
+            } else {
+                showToast('Failed to resolve job on server.', 'error');
+            }
+        } catch (err) {
+            showToast('Error uploading cleanup proof.', 'error');
+        }
+    });
+}
+
+// 5. Admin logic
+function initAdminPage() {
+    renderAdminPortal();
+    renderMonthlyReport();
+
+    const bandra = getLocationCoordinates();
+    if (document.getElementById('admin-leaflet-map')) {
+        STATE.maps.admin = L.map('admin-leaflet-map').setView([bandra.lat, bandra.lng], bandra.zoom);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(STATE.maps.admin);
+
+        drawAllMapMarkers();
+    }
+
+    // Wire up: click "Reported Today" box → open popup modal
+    const todayBox = document.getElementById('admin-stat-total-today-box');
+    if (todayBox) {
+        todayBox.addEventListener('click', openTodayComplaintsModal);
+    }
+
+    // Wire up: close modal button
+    const closeBtn = document.getElementById('btn-close-today-modal');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeTodayComplaintsModal);
+    }
+    const modalOverlay = document.getElementById('today-complaints-modal');
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeTodayComplaintsModal();
+        });
+    }
+
+    // Wire up: Export to Excel button
+    const exportBtn = document.getElementById('btn-export-excel');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportMonthlyReportToCSV);
+    }
+}
+
+
+// ----------------------------------------------------
+// Collection Point Manager (Driver Portal)
+// ----------------------------------------------------
+
+/** Haversine formula: returns distance in km between two lat/lng points */
+function haversineDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLng/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+/** Returns true if any collection point is within 1km of the given lat/lng */
+function isWithin1kmOfRoute(lat, lng) {
+    if (!STATE.collectionPoints || STATE.collectionPoints.length === 0) return true; // show all if no points set
+    return STATE.collectionPoints.some(p => haversineDistance(p.lat, p.lng, lat, lng) <= 1.0);
+}
+
+function togglePinMode() {
+    const btn = document.getElementById('btn-enter-pin-mode');
+    const map = STATE.maps.driver;
+    if (!map) return;
+
+    STATE.pinModeActive = !STATE.pinModeActive;
+    if (STATE.pinModeActive) {
+        btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Cancel (Click map to pin)';
+        btn.style.background = 'var(--warning)';
+        map.getContainer().style.cursor = 'crosshair';
+        map.once('click', onMapClickAddPoint);
+        showToast('Pin mode ON — tap anywhere on the map to add a collection point.', 'info');
+    } else {
+        btn.innerHTML = '<i class="fa-solid fa-crosshairs"></i> Add Point';
+        btn.style.background = '';
+        map.getContainer().style.cursor = '';
+        map.off('click', onMapClickAddPoint);
+    }
+}
+
+function onMapClickAddPoint(e) {
+    STATE.pinModeActive = false;
+    const btn = document.getElementById('btn-enter-pin-mode');
+    if (btn) { btn.innerHTML = '<i class="fa-solid fa-crosshairs"></i> Add Point'; btn.style.background = ''; }
+    const map = STATE.maps.driver;
+    if (map) map.getContainer().style.cursor = '';
+
+    if (STATE.collectionPoints.length >= 40) {
+        showToast('Maximum 40 collection points reached!', 'error');
+        return;
+    }
+    addCollectionPoint(e.latlng.lat, e.latlng.lng);
+}
+
+function addCollectionPoint(lat, lng, label) {
+    const index = STATE.collectionPoints.length + 1;
+    const pointLabel = label || `Point ${index}`;
+    STATE.collectionPoints.push({ lat, lng, label: pointLabel });
+
+    // Drop a green marker on the map
+    const map = STATE.maps.driver;
+    if (map) {
+        const icon = L.divIcon({
+            className: '',
+            html: `<div style="background:#10b981;color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);">${index}</div>`,
+            iconSize: [26, 26],
+            iconAnchor: [13, 13]
+        });
+        const marker = L.marker([lat, lng], { icon })
+            .addTo(map)
+            .bindPopup(`<b>${pointLabel}</b><br>${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+        STATE.cpMarkers.push(marker);
+    }
+
+    renderCollectionPointsList();
+    // Re-filter complaint markers with new points
+    drawAllMapMarkers();
+}
+
+function removeCollectionPoint(idx) {
+    // Remove marker from map
+    if (STATE.cpMarkers[idx]) {
+        STATE.maps.driver && STATE.maps.driver.removeLayer(STATE.cpMarkers[idx]);
+        STATE.cpMarkers.splice(idx, 1);
+    }
+    STATE.collectionPoints.splice(idx, 1);
+    // Renumber remaining markers
+    STATE.cpMarkers.forEach((m, i) => {
+        m.setIcon(L.divIcon({
+            className: '',
+            html: `<div style="background:#10b981;color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);">${i+1}</div>`,
+            iconSize: [26, 26], iconAnchor: [13, 13]
+        }));
+    });
+    renderCollectionPointsList();
+    drawAllMapMarkers();
+}
+
+function clearAllCollectionPoints() {
+    STATE.cpMarkers.forEach(m => STATE.maps.driver && STATE.maps.driver.removeLayer(m));
+    STATE.cpMarkers = [];
+    STATE.collectionPoints = [];
+    renderCollectionPointsList();
+    drawAllMapMarkers();
+    showToast('All collection points cleared.', 'info');
+}
+
+function renderCollectionPointsList() {
+    const list = document.getElementById('collection-points-list');
+    const emptyMsg = document.getElementById('cp-empty-msg');
+    const counter = document.getElementById('cp-counter-badge');
+    if (!list) return;
+
+    if (counter) counter.textContent = `${STATE.collectionPoints.length} / 40`;
+
+    if (STATE.collectionPoints.length === 0) {
+        list.innerHTML = `<p style="text-align:center;font-size:0.85rem;padding:16px 0;color:var(--text-secondary);" id="cp-empty-msg">No points added. Click <strong>Add Point</strong> then tap the map.</p>`;
+        return;
+    }
+
+    list.innerHTML = STATE.collectionPoints.map((p, i) => `
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+            <span style="background:#10b981;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">${i+1}</span>
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:0.8rem;font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.label}</div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);">${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}</div>
+            </div>
+            <button onclick="removeCollectionPoint(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;padding:4px;font-size:0.85rem;" title="Remove point">
+                <i class="fa-solid fa-trash-can"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+async function saveDriverRoute() {
+    if (!STATE.user || !STATE.user.id) {
+        showToast('Please log in to save your route.', 'error');
+        return;
+    }
+    if (STATE.collectionPoints.length === 0) {
+        showToast('Add at least one collection point before saving.', 'error');
+        return;
+    }
+    try {
+        const res = await fetch('/api/driver/route', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ driverId: STATE.user.id, points: STATE.collectionPoints })
+        });
+        if (res.ok) {
+            const data = await res.json();
+            showToast(`Route saved! ${data.saved} collection points stored.`, 'success');
+        } else {
+            showToast('Failed to save route.', 'error');
+        }
+    } catch (e) {
+        showToast('Error saving route.', 'error');
+    }
+}
+
+async function loadDriverRoute() {
+    if (!STATE.user || !STATE.user.id) return;
+    try {
+        const res = await fetch(`/api/driver/route?driverId=${STATE.user.id}`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.points && data.points.length > 0) {
+                STATE.collectionPoints = [];
+                STATE.cpMarkers.forEach(m => STATE.maps.driver && STATE.maps.driver.removeLayer(m));
+                STATE.cpMarkers = [];
+                data.points.forEach(p => addCollectionPoint(p.lat, p.lng, p.label));
+                showToast(`Loaded ${data.points.length} saved collection point(s).`, 'info');
+            }
+        }
+    } catch (e) {
+        console.warn('Could not load saved driver route.', e);
+    }
+}
+
+window.removeCollectionPoint = removeCollectionPoint;
+
+// ----------------------------------------------------
+// UI Renderers
+// ----------------------------------------------------
+
+async function renderOverviewStats() {
+    const resEl = document.getElementById('stat-resolved');
+    const actEl = document.getElementById('stat-active');
+    
+    if (!resEl) return;
+
+    try {
+        const res = await fetch('/api/admin/stats');
+        if (res.ok) {
+            const stats = await res.json();
+            resEl.innerText = (12458 + stats.completed).toLocaleString();
+            if (actEl) actEl.innerText = (342 + stats.open + stats.pending + stats.progress).toLocaleString();
+        }
+    } catch (e) {
+        // Fallback counters
+        const totalResolved = STATE.complaints.filter(c => c.status === 'Completed').length;
+        const activeCount = STATE.complaints.filter(c => c.status !== 'Completed').length;
+        resEl.innerText = (12458 + totalResolved).toLocaleString();
+        if (actEl) actEl.innerText = (342 + activeCount).toLocaleString();
+    }
+
+    const mapTitle = document.getElementById('map-location-title');
+    if (mapTitle) {
+        mapTitle.innerText = `${STATE.location.state} > ${STATE.location.district} > ${STATE.location.city}`;
+    }
+}
+
+function renderDashboardLists() {
+    const list = document.getElementById('dashboard-complaints-list');
+    if (!list) return;
+
+    const cityComplaints = STATE.complaints
+        .filter(c => c.city.toLowerCase() === STATE.location.city.toLowerCase())
+        .sort((a, b) => b.timestamp - a.timestamp);
+
+    if (cityComplaints.length === 0) {
+        list.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 32px 0;">
+                <i class="fa-solid fa-circle-check" style="font-size: 2rem; color: var(--primary-green); margin-bottom: 8px;"></i>
+                <p style="font-size: 0.85rem; font-weight: 500;">No active garbage complaints in this city!</p>
+            </div>
+        `;
+    } else {
+        list.innerHTML = cityComplaints.slice(0, 4).map(c => {
+            let statusBadge = 'badge-danger';
+            if (c.status === 'Pending') statusBadge = 'badge-warning';
+            if (c.status === 'In Progress') statusBadge = 'badge-primary';
+            if (c.status === 'Completed') statusBadge = 'badge-success';
+
+            return `
+                <div class="complaint-item" onclick="focusOnComplaintMarker('${c.id}')" style="cursor: pointer;">
+                    <img class="complaint-thumb" src="${c.photo}" alt="Trash issue">
+                    <div class="complaint-info">
+                        <h5>${c.title}</h5>
+                        <p>${c.area}, ${STATE.location.city}</p>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                        <span class="badge ${statusBadge}">${c.status}</span>
+                        <small style="font-size: 0.65rem; color: var(--text-muted);">${c.timeStr || formatTimeAgo(c.timestamp)}</small>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    const schedule = document.getElementById('dashboard-schedule-list');
+    if (schedule) {
+        const areas = {
+            'Bandra': ['Bandra West', 'Bandra East', 'Carter Road', 'Bandra Kurla Complex'],
+            'Khar': ['Khar West', 'Khar East', 'Carter Road', 'Linking Road'],
+            'Kurla': ['Kurla West', 'Kurla East', 'Kamani', 'LBS Road']
+        };
+
+        const activeAreas = areas[STATE.location.city] || ['Sector 1', 'Sector 2', 'Sector 3'];
+        const slots = ['8:00 AM - 10:00 AM', '10:00 AM - 12:00 PM', '2:00 PM - 4:00 PM', '4:00 PM - 6:00 PM'];
+
+        schedule.innerHTML = activeAreas.map((area, idx) => `
+            <tr>
+                <td><strong>${area}</strong></td>
+                <td>${slots[idx % slots.length]}</td>
+                <td><span class="badge badge-success">Upcoming</span></td>
+            </tr>
+        `).join('');
+    }
+}
+
+function renderCitizenTrackList() {
+    const tbody = document.getElementById('citizen-tracking-tbody');
+    if (!tbody) return;
+
+    const filterVal = document.getElementById('track-status-filter').value;
+    let userComplaints = STATE.complaints;
+
+    if (filterVal !== 'all') {
+        userComplaints = userComplaints.filter(c => c.status === filterVal);
+    }
+
+    userComplaints.sort((a, b) => b.timestamp - a.timestamp);
+
+    if (userComplaints.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 48px; color: var(--text-muted);">
+                    <i class="fa-solid fa-folder-open" style="font-size: 2.5rem; margin-bottom: 12px; display: block; color: var(--text-muted);"></i>
+                    No complaints matching this status filter.
+                </td>
+            </tr>
+        `;
+    } else {
+        tbody.innerHTML = userComplaints.map(c => {
+            let statusBadge = 'badge-danger';
+            if (c.status === 'Pending') statusBadge = 'badge-warning';
+            if (c.status === 'In Progress') statusBadge = 'badge-primary';
+            if (c.status === 'Completed') statusBadge = 'badge-success';
+
+            const progress = c.status === 'Completed' ? 4 : c.status === 'In Progress' ? 3 : c.status === 'Pending' ? 2 : 1;
+            const steps = ['Reported', 'Assigned', 'Cleaning', 'Resolved'];
+            const timeline = steps.map((step, index) => `<span class="${index < progress ? 'done' : ''} ${index + 1 === progress ? 'current' : ''}">${step}</span>`).join('');
+            return `
+                <tr>
+                    <td><span class="track-id">${c.id}</span></td>
+                    <td class="td-desc-wrap">
+                        <h4>${c.category}</h4>
+                        <p title="${c.description}">${c.description}</p>
+                    </td>
+                    <td>${formatFullDate(c.timestamp)}</td>
+                    <td>${c.area || 'GPS Location'}<br><small style="color: var(--text-muted); font-size: 0.7rem;">${c.lat.toFixed(5)}, ${c.lng.toFixed(5)}</small></td>
+                    <td>
+                        <img class="track-img" src="${c.photo}" alt="proof" onclick="showImageModal('${c.photo}', '${c.title}')">
+                    </td>
+                    <td><span class="badge ${statusBadge}">${c.status}</span><div class="status-flow" aria-label="Complaint progress">${timeline}</div></td>
+                </tr>
+            `;
+        }).join('');
+    }
+}
+
+function renderDriverPortal() {
+    const stopsContainer = document.getElementById('driver-stops-queue');
+    const badge = document.getElementById('driver-queue-count');
+    if (!stopsContainer) return;
+
+    const pendingJobs = STATE.complaints.filter(c => c.status !== 'Completed' && c.city.toLowerCase() === STATE.location.city.toLowerCase());
+    badge.innerText = `${pendingJobs.length} Stops`;
+
+    if (pendingJobs.length === 0) {
+        stopsContainer.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 32px 16px;">
+                <i class="fa-solid fa-circle-check" style="font-size: 2rem; color: var(--primary-green); margin-bottom: 8px;"></i>
+                <p style="font-size: 0.85rem; font-weight: 500;">All cleanup routes completed!</p>
+            </div>
+        `;
+        document.getElementById('driver-action-card').classList.add('disabled-card');
+        document.getElementById('active-job-id').innerText = 'No active jobs';
+        document.getElementById('active-job-title').innerText = 'All set!';
+        document.getElementById('active-job-desc').innerText = 'There are no active garbage overflow complaints reported in this area.';
+    } else {
+        stopsContainer.innerHTML = pendingJobs.map((job, idx) => {
+            const isActive = STATE.activeDriverJob && STATE.activeDriverJob.id === job.id;
+            return `
+                <div class="driver-stop-card ${isActive ? 'active-stop' : ''} ${job.status === 'Completed' ? 'completed-stop' : ''}" onclick="selectDriverJob('${job.id}')">
+                    <div class="stop-number">${idx + 1}</div>
+                    <div class="stop-info">
+                        <h4>${job.category}</h4>
+                        <p>${job.title} (${job.area})</p>
+                    </div>
+                    <span class="badge ${job.status === 'In Progress' ? 'badge-primary' : 'badge-danger'}">${job.status}</span>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
+async function renderAdminPortal() {
+    try {
+        const statsRes = await fetch('/api/admin/stats');
+        if (statsRes.ok) {
+            const stats = await statsRes.json();
+            const totToday = document.getElementById('admin-stat-total-today');
+            const pendingVal = document.getElementById('admin-stat-pending');
+            const progressVal = document.getElementById('admin-stat-progress');
+            const solvedVal = document.getElementById('admin-stat-solved-today');
+
+            if (totToday) totToday.innerText = stats.total;
+            if (pendingVal) pendingVal.innerText = stats.open + stats.pending;
+            if (progressVal) progressVal.innerText = stats.progress;
+            if (solvedVal) solvedVal.innerText = stats.completed;
+        }
+    } catch (e) {
+        console.error('Error fetching admin statistics');
+    }
+
+    const list = document.getElementById('admin-drivers-list');
+    if (list) {
+        list.innerHTML = STATE.drivers.map(d => {
+            const isSelected = STATE.selectedAdminDriver && STATE.selectedAdminDriver.id === d.id;
+            return `
+                <div class="admin-driver-item ${isSelected ? 'selected-driver' : ''}" onclick="selectAdminDriver('${d.id}')">
+                    <div class="admin-drv-avatar">
+                        <i class="fa-solid fa-truck"></i>
+                    </div>
+                    <div class="admin-drv-info">
+                        <h4>${d.name}</h4>
+                        <p>${d.vehicle}</p>
+                    </div>
+                    <span class="badge ${d.status === 'Active' ? 'badge-success' : 'badge-danger'}">${d.status}</span>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
+// ---- Today's Complaints Popup ----
+function openTodayComplaintsModal() {
+    const modal = document.getElementById('today-complaints-modal');
+    const tbody = document.getElementById('today-complaints-tbody');
+    if (!modal || !tbody) return;
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayComplaints = STATE.complaints.filter(c => c.timestamp >= todayStart.getTime());
+
+    if (todayComplaints.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 32px; color: var(--text-muted);">No complaints reported today.</td></tr>`;
+    } else {
+        const badgeMap = { 'Open': 'badge-danger', 'Pending': 'badge-warning', 'In Progress': 'badge-primary', 'Completed': 'badge-success' };
+        tbody.innerHTML = todayComplaints.map(c => `
+            <tr>
+                <td><span class="track-id">${c.id}</span></td>
+                <td>${c.category || 'General'}</td>
+                <td>${c.reportedBy || 'Anonymous'}</td>
+                <td>${c.area || c.city || '-'}</td>
+                <td><span class="badge ${badgeMap[c.status] || 'badge-danger'}">${c.status}</span></td>
+            </tr>
+        `).join('');
+    }
+    modal.classList.add('active');
+}
+
+function closeTodayComplaintsModal() {
+    const modal = document.getElementById('today-complaints-modal');
+    if (modal) modal.classList.remove('active');
+}
+
+// ---- Monthly Report Table (last 30 days) ----
+function renderMonthlyReport() {
+    const tbody = document.getElementById('monthly-report-tbody');
+    if (!tbody) return;
+
+    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    const list = STATE.complaints
+        .filter(c => c.timestamp >= thirtyDaysAgo)
+        .sort((a, b) => b.timestamp - a.timestamp);
+
+    if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 32px; color: var(--text-muted);">No complaints in the last 30 days.</td></tr>`;
+        return;
+    }
+    const badgeMap = { 'Open': 'badge-danger', 'Pending': 'badge-warning', 'In Progress': 'badge-primary', 'Completed': 'badge-success' };
+    tbody.innerHTML = list.map(c => {
+        const d = new Date(c.timestamp);
+        const dateStr = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`;
+        return `
+            <tr>
+                <td>${dateStr}</td>
+                <td><span class="track-id">${c.id}</span></td>
+                <td>${c.category || 'General'}</td>
+                <td>${c.reportedBy || 'Anonymous'}</td>
+                <td>${c.area || c.city || '-'}</td>
+                <td><span class="badge ${badgeMap[c.status] || 'badge-danger'}">${c.status}</span></td>
+            </tr>`;
+    }).join('');
+}
+
+// ---- Export Monthly Report as CSV (Excel-compatible) ----
+function exportMonthlyReportToCSV() {
+    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    const list = STATE.complaints
+        .filter(c => c.timestamp >= thirtyDaysAgo)
+        .sort((a, b) => b.timestamp - a.timestamp);
+
+    if (list.length === 0) { showToast('No data in the last 30 days to export.', 'error'); return; }
+
+    const esc = (v) => `"${String(v || '').replace(/"/g, '""')}"`;
+    const headers = ['Date', 'Complaint ID', 'Category', 'Description', 'Reported By', 'Area', 'City', 'Latitude', 'Longitude', 'Status'];
+    const rows = list.map(c => {
+        const d = new Date(c.timestamp);
+        const dateStr = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`;
+        return [esc(dateStr), esc(c.id), esc(c.category), esc(c.description), esc(c.reportedBy), esc(c.area), esc(c.city), esc(c.lat), esc(c.lng), esc(c.status)].join(',');
+    });
+
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `UrbanClean_Monthly_Report_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Monthly report exported successfully!', 'success');
+}
+
+window.openTodayComplaintsModal = openTodayComplaintsModal;
+window.closeTodayComplaintsModal = closeTodayComplaintsModal;
+
+// ----------------------------------------------------
+// Map helpers & triggers
+// ----------------------------------------------------
+
+function drawAllMapMarkers() {
+    const activeMap = STATE.maps.dashboard || STATE.maps.driver || STATE.maps.admin;
+    if (!activeMap) return;
+
+    const colors = {
+        'Open': '#ef4444',
+        'Pending': '#f59e0b',
+        'In Progress': '#3b82f6',
+        'Completed': '#10b981'
+    };
+
+    const mapInstance = STATE.maps.dashboard || STATE.maps.driver || STATE.maps.admin;
+    const currentMarkersKey = STATE.maps.dashboard ? 'dashboard' : (STATE.maps.driver ? 'driver' : 'admin');
+
+    // Clean old
+    STATE.markers[currentMarkersKey].forEach(m => mapInstance.removeLayer(m));
+    STATE.markers[currentMarkersKey] = [];
+
+    const cityComplaints = STATE.complaints.filter(c => c.city.toLowerCase() === STATE.location.city.toLowerCase());
+
+    cityComplaints.forEach(c => {
+        if (currentMarkersKey === 'driver' && c.status === 'Completed') return;
+
+        const m = L.circleMarker([c.lat, c.lng], {
+            radius: 8,
+            fillColor: colors[c.status] || '#94a3b8',
+            color: '#ffffff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.95
+        }).addTo(mapInstance);
+
+        const popupContent = `
+            <div>
+                <h4>${c.category}</h4>
+                <p><strong>Status:</strong> <span class="badge ${
+                    c.status === 'Completed' ? 'badge-success' :
+                    c.status === 'In Progress' ? 'badge-primary' :
+                    c.status === 'Pending' ? 'badge-warning' : 'badge-danger'
+                }">${c.status}</span></p>
+                <p style="margin-top: 4px;">${c.title}</p>
+                <img src="${c.photo}" style="width: 100%; height: 70px; object-fit: cover; border-radius: 4px; margin-top: 6px; border:1px solid #ddd;"/>
+            </div>
+        `;
+        m.bindPopup(popupContent);
+
+        if (currentMarkersKey === 'driver') {
+            m.on('click', () => selectDriverJob(c.id));
+        }
+
+        STATE.markers[currentMarkersKey].push(m);
+    });
+
+    if (currentMarkersKey === 'driver') {
+        L.marker([ROUTE_NODES['Bandra Depot'].lat, ROUTE_NODES['Bandra Depot'].lng], {
+            icon: L.divIcon({
+                className: 'custom-div-icon',
+                html: "<div style='background-color:#1e293b; color:white; font-size:9px; padding:3px 6px; border-radius:4px; font-weight:700; border:1px solid white;'>START DEPOT</div>",
+                iconSize: [80, 20],
+                iconAnchor: [40, 10]
+            })
+        }).addTo(mapInstance);
+
+        L.marker([ROUTE_NODES['Deonar Landfill'].lat, ROUTE_NODES['Deonar Landfill'].lng], {
+            icon: L.divIcon({
+                className: 'custom-div-icon',
+                html: "<div style='background-color:#065f46; color:white; font-size:9px; padding:3px 6px; border-radius:4px; font-weight:700; border:1px solid white;'>LANDFILL</div>",
+                iconSize: [80, 20],
+                iconAnchor: [40, 10]
+            })
+        }).addTo(mapInstance);
+    }
+}
+
+function updateMapLocationViewports() {
+    const cityData = getLocationCoordinates();
+
+    const activeMap = STATE.maps.dashboard || STATE.maps.selector || STATE.maps.driver || STATE.maps.admin;
+    if (activeMap) {
+        activeMap.setView([cityData.lat, cityData.lng], cityData.zoom);
+    }
+
+    drawAllMapMarkers();
+}
+
+function focusOnComplaintMarker(compId) {
+    const comp = STATE.complaints.find(c => c.id === compId);
+    if (!comp || !STATE.maps.dashboard) return;
+
+    STATE.maps.dashboard.setView([comp.lat, comp.lng], 16);
+    const idx = STATE.complaints.filter(c => c.city.toLowerCase() === STATE.location.city.toLowerCase()).indexOf(comp);
+    if (idx !== -1 && STATE.markers.dashboard[idx]) {
+        STATE.markers.dashboard[idx].openPopup();
+    }
+}
+
+// ----------------------------------------------------
+// Citizen Operations
+// ----------------------------------------------------
+
+function autoDetectGPS() {
+    const statusSpan = document.getElementById('gps-status');
+    const latInput = document.getElementById('comp-lat');
+    const lngInput = document.getElementById('comp-lng');
+    statusSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Detecting location...';
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                latInput.value = lat.toFixed(6);
+                lngInput.value = lng.toFixed(6);
+                statusSpan.innerHTML = `<span style="color: var(--primary-green); font-weight: bold;"><i class="fa-solid fa-circle-check"></i> GPS Lock Acquired</span>`;
+
+                if (STATE.maps.selector) {
+                    STATE.maps.selector.setView([lat, lng], 16);
+                    if (STATE.markers.selector) {
+                        STATE.markers.selector.setLatLng([lat, lng]);
+                    } else {
+                        STATE.markers.selector = L.marker([lat, lng], { draggable: true }).addTo(STATE.maps.selector);
+                        STATE.markers.selector.on('dragend', (e) => {
+                            const p = e.target.getLatLng();
+                            latInput.value = p.lat.toFixed(6);
+                            lngInput.value = p.lng.toFixed(6);
+                        });
+                    }
+                }
+            },
+            () => {
+                const mock = getLocationCoordinates();
+                setTimeout(() => {
+                    latInput.value = mock.lat.toFixed(6);
+                    lngInput.value = mock.lng.toFixed(6);
+                    statusSpan.innerHTML = `<span style="color: var(--status-pending); font-weight: bold;"><i class="fa-solid fa-circle-exclamation"></i> GPS Mock (Fallback)</span>`;
+
+                    if (STATE.maps.selector) {
+                        STATE.maps.selector.setView([mock.lat, mock.lng], 16);
+                        if (STATE.markers.selector) {
+                            STATE.markers.selector.setLatLng([mock.lat, mock.lng]);
+                        } else {
+                            STATE.markers.selector = L.marker([mock.lat, mock.lng], { draggable: true }).addTo(STATE.maps.selector);
+                        }
+                    }
+                    showToast('GPS blocked. Loaded default city center.', 'info');
+                }, 800);
+            }
+        );
+    }
+}
+
+function handleFileSelect(e, scope) {
+    const files = e.target.files || e.dataTransfer.files;
+    if (!files.length) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        if (scope === 'citizen') {
+            STATE.tempUploadBase64 = event.target.result;
+            document.getElementById('file-preview-area').style.display = 'flex';
+            document.querySelector('#file-dropzone .dropzone-prompt').style.display = 'none';
+            document.getElementById('img-upload-preview').src = event.target.result;
+        } else {
+            STATE.tempDriverUploadBase64 = event.target.result;
+            document.getElementById('driver-preview-area').style.display = 'flex';
+            document.getElementById('driver-dropzone-prompt').style.display = 'none';
+            document.getElementById('img-driver-preview').src = event.target.result;
+            document.getElementById('btn-mark-cleanup-complete').removeAttribute('disabled');
+        }
+    };
+    reader.readAsDataURL(files[0]);
+}
+
+// ----------------------------------------------------
+// Driver Operations
+// ----------------------------------------------------
+
+function selectDriverJob(jobId) {
+    const job = STATE.complaints.find(c => c.id === jobId);
+    if (!job) return;
+
+    STATE.activeDriverJob = job;
+    document.getElementById('driver-action-card').classList.remove('disabled-card');
+    document.getElementById('active-job-id').innerText = job.id;
+    document.getElementById('active-job-title').innerText = `${job.category} - ${job.area}`;
+    document.getElementById('active-job-desc').innerText = `Coords: ${job.lat.toFixed(5)}, ${job.lng.toFixed(5)}. Landmark: ${job.description}`;
+
+    if (job.status === 'Open' || job.status === 'Pending') {
+        job.status = 'In Progress';
+        // In a real app we'd call a backend PUT endpoint here to update to "In Progress".
+        // But for this mockup, we'll just local-stage it and update on complete resolution.
+        renderDriverPortal();
+        showToast(`Selected job ${job.id}. Staged: In Progress`, 'info');
+    }
+
+    if (STATE.maps.driver) STATE.maps.driver.setView([job.lat, job.lng], 16);
+}
+
+// FETCH Optimized path route from Backend Express!
+async function generateDriverOptimizedRoute() {
+    const start = document.getElementById('driver-route-start').value;
+    const end = document.getElementById('driver-route-end').value;
+
+    try {
+        showToast('Requesting route TSP calculation from API...', 'info');
+        const res = await fetch(`/api/route-optimize?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}&city=${STATE.location.city}`);
+        
+        if (res.ok) {
+            const data = await res.json();
+            
+            // Draw optimized path
+            if (STATE.polylines.driver) STATE.maps.driver.removeLayer(STATE.polylines.driver);
+            
+            const coords = data.roadPath
+                ? data.roadPath.map(pt => [pt.lat, pt.lng])
+                : data.path.map(node => [node.lat, node.lng]);
+            STATE.polylines.driver = L.polyline(coords, {
+                color: '#2563eb',
+                weight: 4,
+                dashArray: '8, 8',
+                opacity: 0.8
+            }).addTo(STATE.maps.driver);
+
+            STATE.maps.driver.fitBounds(STATE.polylines.driver.getBounds(), { padding: [30, 30] });
+
+            // Display metrics
+            document.getElementById('fuel-distance').innerText = data.distance;
+            document.getElementById('fuel-savings-percent').innerText = data.savings;
+
+            showToast('Optimized path generated with fuel savings of ' + data.savings + '!', 'success');
+        } else {
+            showToast('Failed to optimize route.', 'error');
+        }
+    } catch (err) {
+        showToast('Error connecting to optimization service.', 'error');
+    }
+}
+
+// ----------------------------------------------------
+// Admin Operations
+// ----------------------------------------------------
+
+async function selectAdminDriver(drvId) {
+    const d = STATE.drivers.find(drv => drv.id === drvId);
+    if (!d) return;
+
+    STATE.selectedAdminDriver = d;
+    renderAdminPortal();
+
+    const detailCard = document.getElementById('admin-driver-detail-card');
+    detailCard.classList.remove('disabled-card');
+
+    const content = document.getElementById('admin-driver-detail-content');
+    if (d.status === 'Off-Duty') {
+        content.innerHTML = `
+            <div class="driver-detail-row"><strong>Driver Name</strong><span>${d.name}</span></div>
+            <div class="driver-detail-row"><strong>Status</strong><span class="badge badge-danger">Off Duty</span></div>
+            <div class="driver-detail-row"><strong>Assigned Vehicle</strong><span>${d.vehicle}</span></div>
+        `;
+        if (STATE.polylines.admin) {
+            STATE.maps.admin.removeLayer(STATE.polylines.admin);
+            STATE.polylines.admin = null;
+        }
+    } else {
+        content.innerHTML = `
+            <div class="driver-detail-row"><strong>Driver Name</strong><span>${d.name}</span></div>
+            <div class="driver-detail-row"><strong>Status</strong><span class="badge badge-success">Active Duty</span></div>
+            <div class="driver-detail-row"><strong>Optimized Path Length</strong><span>${d.distance}</span></div>
+            <div class="driver-detail-row"><strong>CO2/Fuel Savings</strong><span class="text-success">${d.efficiency}</span></div>
+            <div class="driver-detail-row"><strong>Stops Assigned</strong><span>${d.assignedComplaints.length} Garbage Nodes</span></div>
+        `;
+
+        // Fetch same optimization route path to overlay on admin map!
+        try {
+            const start = 'Bandra Depot';
+            const end = 'Deonar Landfill';
+            const res = await fetch(`/api/route-optimize?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}&city=Bandra`);
+            
+            if (res.ok) {
+                const data = await res.json();
+                if (STATE.polylines.admin) STATE.maps.admin.removeLayer(STATE.polylines.admin);
+                
+                const coords = data.roadPath
+                    ? data.roadPath.map(pt => [pt.lat, pt.lng])
+                    : data.path.map(node => [node.lat, node.lng]);
+                STATE.polylines.admin = L.polyline(coords, {
+                    color: '#7c3aed',
+                    weight: 4,
+                    opacity: 0.85
+                }).addTo(STATE.maps.admin);
+
+                STATE.maps.admin.fitBounds(STATE.polylines.admin.getBounds(), { padding: [50, 50] });
+            }
+        } catch (e) {
+            console.error('Error drawing driver path in admin console');
+        }
+    }
+}
+
+// ----------------------------------------------------
+// UI Navigation Switches
+// ----------------------------------------------------
+
+function switchLandingSection(e, sectionId) {
+    if (e) e.preventDefault();
+
+    document.querySelectorAll('.sidebar .nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    document.querySelectorAll('.sidebar .nav-item').forEach(item => {
+        const text = item.innerText.toLowerCase();
+        if (text.includes(sectionId.replace('-', ' '))) {
+            item.classList.add('active');
+        }
+    });
+
+    document.querySelectorAll('.landing-sub-section').forEach(sec => sec.classList.remove('active'));
+    document.getElementById(`${sectionId}-section`).classList.add('active');
+}
+
+function toggleCitizenView(e, subview) {
+    if (e) e.preventDefault();
+
+    const reportTab = document.getElementById('btn-nav-report');
+    const trackTab = document.getElementById('btn-nav-track');
+    const reportSec = document.getElementById('citizen-report-subview');
+    const trackSec = document.getElementById('citizen-track-subview');
+
+    if (subview === 'report') {
+        reportTab.classList.add('active');
+        trackTab.classList.remove('active');
+        reportSec.classList.add('active');
+        trackSec.classList.remove('active');
+        setTimeout(() => STATE.maps.selector && STATE.maps.selector.invalidateSize(), 100);
+    } else {
+        reportTab.classList.remove('active');
+        trackTab.classList.add('active');
+        reportSec.classList.remove('active');
+        trackSec.classList.add('active');
+    }
+}
+
+function redirectToReportPage(e) {
+    if (e) e.preventDefault();
+    if (STATE.user && STATE.user.role === 'citizen') {
+        window.location.href = 'citizen.html';
+    } else {
+        showToast('Please Login as a Citizen to access reports.', 'info');
+        setTimeout(() => {
+            window.location.href = 'login.html?redirect=citizen.html';
+        }, 800);
+    }
+}
+
+// Alerts & Lightboxes
+function showToast(msg, type = 'info') {
+    const toast = document.getElementById('app-toast');
+    if (!toast) return;
+
+    toast.querySelector('.toast-msg').innerText = msg;
+    toast.className = 'toast-notification';
+    if (type === 'success') toast.classList.add('success');
+    if (type === 'error') toast.classList.add('error');
+    
+    toast.classList.add('active');
+    setTimeout(() => toast.classList.remove('active'), 4000);
+}
+
+function formatTimeAgo(ts) {
+    const d = Date.now() - ts;
+    const m = Math.floor(d / 60000);
+    const h = Math.floor(d / 3600000);
+    if (m < 1) return 'Just now';
+    if (m < 60) return `${m} mins ago`;
+    if (h < 24) return `${h} hours ago`;
+    return `${Math.floor(h / 24)} days ago`;
+}
+
+function formatFullDate(ts) {
+    const d = new Date(ts);
+    const m = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${d.getDate()} ${m[d.getMonth()]}, ${d.getFullYear()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+}
+
+function showImageModal(src, title) {
+    let box = document.getElementById('image-lightbox');
+    if (!box) {
+        box = document.createElement('div');
+        box.id = 'image-lightbox';
+        box.style = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:3000;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:zoom-out;';
+        box.innerHTML = `
+            <img id="lightbox-img" src="" style="max-width:85%; max-height:75%; border-radius:8px; border:2px solid white; object-fit:contain;">
+            <p id="lightbox-caption" style="color:white; font-weight:700; margin-top:20px; font-size:1.1rem; font-family:'Outfit';"></p>
+        `;
+        document.body.appendChild(box);
+        box.addEventListener('click', () => box.style.display = 'none');
+    }
+    document.getElementById('lightbox-img').src = src;
+    document.getElementById('lightbox-caption').innerText = title;
+    box.style.display = 'flex';
+}
+
+window.toggleCitizenView = toggleCitizenView;
+window.switchLandingSection = switchLandingSection;
+window.redirectToReportPage = redirectToReportPage;
+window.selectDriverJob = selectDriverJob;
+window.selectAdminDriver = selectAdminDriver;
+window.showImageModal = showImageModal;
+window.focusOnComplaintMarker = focusOnComplaintMarker;
