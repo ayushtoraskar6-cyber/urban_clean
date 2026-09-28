@@ -1,0 +1,33 @@
+# ─── Node.js Dependencies ───────────────────────────────────────────────────
+node_modules/
+backend/node_modules/
+
+# ─── Python Virtual Environment ─────────────────────────────────────────────
+backend/venv/
+backend/__pycache__/
+__pycache__/
+*.pyc
+
+# ─── Environment / Secrets ───────────────────────────────────────────────────
+.env
+*.env
+
+# ─── Office Temp Lock Files ──────────────────────────────────────────────────
+~$*
+
+# ─── Uploaded User Photos ────────────────────────────────────────────────────
+backend/uploads/
+
+# ─── SQLite Binary (auto-generated from db.json) ─────────────────────────────
+backend/urban_clean.db
+db.db
+
+# ─── Stray Test Artifacts ────────────────────────────────────────────────────
+test_real_capture.png
+
+# ─── Old Backup Files ────────────────────────────────────────────────────────
+*.before-codex-20260830.bak
+
+# ─── OS Files ────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
