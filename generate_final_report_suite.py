@@ -31,35 +31,33 @@ EVIDENCE_ASSETS = os.path.join(WORKSPACE_DIR, "screenshots", "evidence")
 LOGO_PATH = os.path.join(WORKSPACE_DIR, "college_logo.jpg")
 GANTT_PATH = os.path.join(WORKSPACE_DIR, "gantt_chart.png")
 
-# All 35 image mappings
+# All 46 image mappings
 IMAGE_MAP = {
     "COLLEGE_LOGO": LOGO_PATH,
     "FIG_3_1": GANTT_PATH,
-    "FIG_4_1": os.path.join(REPORT_ASSETS, "uml_diagram_p1.png"),
-    "FIG_4_2": os.path.join(REPORT_ASSETS, "uml_diagram_p2.png"),
-    "FIG_4_3": os.path.join(REPORT_ASSETS, "uml_diagram_p3.png"),
-    "FIG_4_4": os.path.join(REPORT_ASSETS, "uml_diagram_p4.png"),
-    "FIG_4_5": os.path.join(REPORT_ASSETS, "uml_diagram_p5.png"),
-    "FIG_4_6": os.path.join(REPORT_ASSETS, "uml_diagram_p6.png"),
-    "FIG_4_7": os.path.join(REPORT_ASSETS, "uml_diagram_p7.png"),
-    "FIG_4_8": os.path.join(REPORT_ASSETS, "uml_diagram_p8.png"),
-    "FIG_5_1": os.path.join(REPORT_ASSETS, "uml_diagram_p7.png"), # Deployment / Layered Arch
-    "FIG_5_2": os.path.join(REPORT_ASSETS, "backend_structure_dataflow.png"),
-    "FIG_5_3": os.path.join(REPORT_ASSETS, "db_screenshot_p1.png"),
-    "FIG_5_4": os.path.join(REPORT_ASSETS, "db_screenshot_p2.png"),
-    "FIG_5_5": os.path.join(REPORT_ASSETS, "db_screenshot_p3.png"),
-    "FIG_5_6": os.path.join(REPORT_ASSETS, "proto_landing.png"),
-    "FIG_5_7": os.path.join(REPORT_ASSETS, "proto_login.png"),
-    "FIG_5_8": os.path.join(REPORT_ASSETS, "proto_registration.png"),
-    "FIG_5_9": os.path.join(REPORT_ASSETS, "proto_complaint_form.png"),
-    "FIG_5_10": os.path.join(REPORT_ASSETS, "proto_map_selection.png"),
-    "FIG_5_11": os.path.join(REPORT_ASSETS, "proto_complaint_tracking.png"),
-    "FIG_5_12": os.path.join(REPORT_ASSETS, "proto_driver_dashboard.png"),
-    "FIG_5_13": os.path.join(REPORT_ASSETS, "proto_driver_route.png"),
-    "FIG_5_14": os.path.join(REPORT_ASSETS, "proto_proof_upload.png"),
-    "FIG_5_15": os.path.join(REPORT_ASSETS, "proto_admin_dashboard.png"),
-    "FIG_5_16": os.path.join(REPORT_ASSETS, "proto_monitoring_map.png"),
-    "FIG_5_17": os.path.join(REPORT_ASSETS, "proto_compliance_report.png"),
+    "FIG_4_1": os.path.join(REPORT_ASSETS, "uml_diagram_p1.png"),  # Event Table
+    "FIG_4_2": os.path.join(REPORT_ASSETS, "uml_diagram_p4.png"),  # Use Case
+    "FIG_4_3": os.path.join(REPORT_ASSETS, "uml_diagram_p2.png"),  # Class
+    "FIG_4_4": os.path.join(REPORT_ASSETS, "uml_diagram_p5.png"),  # Sequence
+    "FIG_4_5": os.path.join(REPORT_ASSETS, "uml_diagram_p8.png"),  # Activity
+    "FIG_4_6": os.path.join(REPORT_ASSETS, "er_diagram.png"),       # ER Diagram
+    "FIG_4_7": os.path.join(REPORT_ASSETS, "uml_diagram_p7.png"),  # Deployment
+    "FIG_5_1": os.path.join(REPORT_ASSETS, "proto_landing.png"),
+    "FIG_5_2": os.path.join(REPORT_ASSETS, "proto_login.png"),
+    "FIG_5_3": os.path.join(REPORT_ASSETS, "proto_registration.png"),
+    "FIG_5_4": os.path.join(REPORT_ASSETS, "proto_complaint_form.png"),
+    "FIG_5_5": os.path.join(REPORT_ASSETS, "proto_map_selection.png"),
+    "FIG_5_6": os.path.join(REPORT_ASSETS, "proto_complaint_tracking.png"),
+    "FIG_5_7": os.path.join(REPORT_ASSETS, "proto_driver_dashboard.png"),
+    "FIG_5_8": os.path.join(REPORT_ASSETS, "proto_driver_route.png"),
+    "FIG_5_9": os.path.join(REPORT_ASSETS, "proto_proof_upload.png"),
+    "FIG_5_10": os.path.join(REPORT_ASSETS, "proto_admin_dashboard.png"),
+    "FIG_5_11": os.path.join(REPORT_ASSETS, "proto_monitoring_map.png"),
+    "FIG_5_12": os.path.join(REPORT_ASSETS, "proto_compliance_report.png"),
+    "FIG_5_13": os.path.join(REPORT_ASSETS, "backend_structure_dataflow.png"),
+    "FIG_5_14": os.path.join(REPORT_ASSETS, "db_screenshot_p1.png"),
+    "FIG_5_15": os.path.join(REPORT_ASSETS, "db_screenshot_p2.png"),
+    "FIG_5_16": os.path.join(REPORT_ASSETS, "db_screenshot_p3.png"),
     "FIG_6_1": os.path.join(REPORT_ASSETS, "app_screenshot_p1.png"),
     "FIG_6_2": os.path.join(REPORT_ASSETS, "app_screenshot_p2.png"),
     "FIG_6_3": os.path.join(REPORT_ASSETS, "app_screenshot_p3.png"),
@@ -87,8 +85,9 @@ IMAGE_MAP = {
 def xml_safe(text):
     if not text:
         return ""
-    text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-    return text.replace('"', "&quot;").replace("'", "&apos;")
+    # Filter out control characters that violate XML 1.0 (allow tab 0x9, LF 0xA, CR 0xD)
+    text = "".join(c for c in text if ord(c) in (0x9, 0xA, 0xD) or (0x20 <= ord(c) <= 0xD7FF) or (0xE000 <= ord(c) <= 0xFFFD) or (0x10000 <= ord(c) <= 0x10FFFF))
+    return text
 
 def set_cell_background(cell, fill_hex):
     shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{fill_hex}"/>')

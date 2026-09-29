@@ -118,102 +118,61 @@ The platform establishes an automated complaint lifecycle (**Pending → Assigne
   - List of Tables
   - List of Abbreviations
 - **Chapter 1 — Problem Identification & Feasibility Study**
-  - 1.1 Identification of a Real-World Problem
-  - 1.2 Problem Context & Urban Realities
-  - 1.3 Problem Statement
-  - 1.4 Scope of the Problem
-  - 1.5 Stakeholder Identification & Expectations
-  - 1.6 Feasibility Analysis (Technical, Economic, Operational, Schedule)
-  - 1.7 Project Constraints & Assumptions
-  - 1.8 Expected Project Outcomes
+  - 1.1 Real-World Problem
+  - 1.2 Justification & Scope
+  - 1.3 Stakeholders
+  - 1.4 Feasibility: Technical, Economic, Operational
 - **Chapter 2 — Requirement Engineering**
-  - 2.1 Introduction & Requirement Gathering
-  - 2.2 Stakeholder Requirements
-  - 2.3 Functional Requirements (FR-01 to FR-28)
-  - 2.4 Non-Functional Requirements (NFR-01 to NFR-19)
-  - 2.5 Use-Case Analysis Across Actors
-  - 2.6 Requirement Prioritization (MoSCoW Framework)
-  - 2.7 Project Constraints & Assumptions
-  - 2.8 Hardware & Software Requirements
-- **Chapter 3 — Software Development Life Cycle (SDLC) Planning**
-  - 3.1 Selected SDLC Model (Iterative Agile)
-  - 3.2 Reasons for Selecting the Iterative Agile Model
-  - 3.3 SDLC Phases & Milestones
-  - 3.4 Work Breakdown Structure (WBS)
-  - 3.5 Project Activities Deconstruction
-  - 3.6 Project Timeline & Milestone Schedule
-  - 3.7 Resource Planning (Human, Software, Hardware)
-  - 3.8 Risk Identification, Assessment, and Mitigation
-  - 3.9 Project Gantt Chart (Figure 3.1)
+  - 2.1 Functional Requirements (FRs)
+  - 2.2 Non-Functional Requirements (NFRs)
+  - 2.3 Use-Case Analysis Across Actors
+  - 2.4 Prioritization (MoSCoW Framework)
+  - 2.5 Constraints and Assumptions
+- **Chapter 3 — SDLC Planning**
+  - 3.1 Selection of SDLC Model
+  - 3.2 Work Breakdown Structure (WBS)
+  - 3.3 Timeline / Gantt Chart
+  - 3.4 Resource Planning
 - **Chapter 4 — System Modeling Using UML**
-  - 4.1 UML Overview & Visual Modeling Rationale
-  - 4.2 System Actors & Privilege Boundaries
-  - 4.3 UML Event Table (Figure 4.1)
-  - 4.4 Class Diagram (Figure 4.2)
-  - 4.5 Object Diagram — Runtime Snapshot (Figure 4.3)
-  - 4.6 Use Case Diagram (Figure 4.4)
-  - 4.7 Sequence Diagram — Complaint Lifecycle (Figure 4.5)
-  - 4.8 Component Diagram (Figure 4.6)
-  - 4.9 Deployment Diagram (Figure 4.7)
-  - 4.10 Activity Diagram — Operational Logic (Figure 4.8)
+  - 4.1 Event Table
+  - 4.2 Use Case Diagram
+  - 4.3 Class Diagram
+  - 4.4 Sequence Diagram
+  - 4.5 Activity Diagram
+  - 4.6 ER Diagram
+  - 4.7 Deployment Diagram
 - **Chapter 5 — System Architecture Design**
-  - 5.1 Layered System Architecture Overview (Figure 5.1)
-  - 5.2 Frontend Architecture & Client State Model
-  - 5.3 Backend Architecture & RESTful Pipeline
-  - 5.4 Database Architecture & Dual-Persistence Strategy
-  - 5.5 Database Schema & Data Dictionaries (Tables 5.1 to 5.5)
-  - 5.6 Database Schema Inspection via DB Browser for SQLite (Figures 5.2 to 5.4)
-  - 5.7 API Structure & Contract Specifications
-  - 5.8 Authentication, Session Security & RBAC Enforcement
-  - 5.9 Security Considerations & Data Isolation
-  - 5.10 Data Flow Architecture (Context Diagram & Level 1 DFD)
+  - 5.1 Frontend Architecture — Prototype Only
+  - 5.2 Backend Architecture
+  - 5.3 Database Schema Design — Structure of Data
+  - 5.4 API Structure
+  - 5.5 Security Considerations
 - **Chapter 6 — Application Development**
-  - 6.1 Development Environment & Tooling
-  - 6.2 Technology Stack Implementation Details
-  - 6.3 Frontend Implementation (Modular SPA Views)
-  - 6.4 Backend Implementation (Express REST Handlers)
-  - 6.5 Database Integration & Real-Time SQLite Synchronization
-  - 6.6 Authentication & Validation Implementation
-  - 6.7 Complaint Management & Geospatial Algorithms (Haversine & TSP)
-  - 6.8 Error Handling Architecture (Multer Middleware & OSRM Fallback)
-  - 6.9 Screen Walkthrough & Implemented Features (Figures 6.1 to 6.7)
+  - 6.1 Frontend Implementation
+  - 6.2 Backend Implementation
+  - 6.3 Database Integration
+  - 6.4 Authentication & Validation
+  - 6.5 Error Handling
 - **Chapter 7 — Integration & System Testing**
-  - 7.1 Testing Objectives & Quality Goals
-  - 7.2 Comprehensive Testing Strategy
-  - 7.3 Unit Testing & Mathematical Verification (Figure 7.1)
-  - 7.4 Black-Box & Form Validation Testing
-  - 7.5 Integration Testing & API Verification (Figures 7.2 & 7.3)
-  - 7.6 Master Software Testing Test Case Log (Table 7.1: TC-01 to TC-52)
-  - 7.7 Defect & Bug Management (BUG-01 Fix & Minor Defects)
-  - 7.8 Test Execution Summary & Verification Metrics (Table 7.2)
+  - 7.1 Unit Testing
+  - 7.2 Black-Box Testing
+  - 7.3 Integration Testing
+  - 7.4 Test Case Preparation
+  - 7.5 Bug Tracking
 - **Chapter 8 — Deployment**
-  - 8.1 Local Hosting & Runtime Deployment
-  - 8.2 APK Build Analysis (Web-First Architectural Rationale)
-  - 8.3 Server Configuration & Network Topography
-  - 8.4 Version Control Using GitHub (Repository Structure & Branch Architecture)
-  - 8.5 GitHub Working Tree & Commit Provenance Inspection (Figures 8.1 to 8.4)
+  - 8.1 Cloud Deployment / Local Hosting
+  - 8.2 APK Build
+  - 8.3 Server Configuration
+  - 8.4 Version Control Using GitHub
 - **Chapter 9 — Performance & Security Testing**
-  - 9.1 Basic Load Testing & Concurrency Analysis (Figures 9.1 to 9.3)
-  - 9.2 REST API Response Time & Latency Benchmarking (Figure 9.4)
-  - 9.3 Input Validation & Boundary Checks (Figure 9.5)
-  - 9.4 Security Validation & Access Control Verification (Figure 9.6)
-  - 9.5 Identified Vulnerabilities & Implemented Resolutions (Figures 9.7 & 9.8)
-  - 9.6 Performance & Security Verification Summary
-- **Chapter 10 — Final Documentation**
-  - 10.1 Project Implementation Results
-  - 10.2 Empirical Observations
-  - 10.3 Discussion of Algorithmic & Operational Results (Table 10.1)
-  - 10.4 System Limitations & Edge Constraints
-  - 10.5 Future Research & Development Scope
-  - 10.6 Conclusion & Achievement of Objectives (Table 10.2)
-- **References**
-- **Appendices**
-  - Appendix A: Important Source Code
-  - Appendix B: Additional Screenshots
-  - Appendix C: Master Test Cases List
-  - Appendix D: Database Structure DDL
-  - Appendix E: User Manual & Operations Guide
-- **Syllabus Requirements Compliance Checklist**
+  - 9.1 Basic Load Testing
+  - 9.2 Input Validation Checks
+  - 9.3 Security Validation
+- **Chapter 10 — Result and Discussion**
+  - 10.1 Technical Report
+  - 10.2 User Manual
+  - 10.3 Screenshots
+  - 10.4 Source Code Documentation
 
 ---
 
@@ -221,37 +180,48 @@ The platform establishes an automated complaint lifecycle (**Pending → Assigne
 
 - Figure 3.1: Project Gantt Chart (Sem-V 2026-27 Milestones & Timeline)
 - Figure 4.1: UML Event Table — System Triggers, Sources, and Responses
-- Figure 4.2: UrbanClean UML Class Diagram
-- Figure 4.3: UrbanClean Object Diagram — Runtime Snapshot
-- Figure 4.4: UrbanClean Use Case Diagram — Actors, Use Cases, and System Boundary
-- Figure 4.5: UML Sequence Diagram — End-to-End Complaint Lifecycle
-- Figure 4.6: UrbanClean Component Diagram
+- Figure 4.2: UrbanClean Use Case Diagram — Actors, Use Cases, and System Boundary
+- Figure 4.3: UrbanClean UML Class Diagram
+- Figure 4.4: UML Sequence Diagram — End-to-End Complaint Lifecycle
+- Figure 4.5: UrbanClean Activity Diagram — Complaint Processing, Routing, and Resolution Flow
+- Figure 4.6: Entity-Relationship Diagram of UrbanClean
 - Figure 4.7: UrbanClean Deployment Diagram
-- Figure 4.8: UrbanClean Activity Diagram — Complaint Processing, Routing, and Resolution Flow
-- Figure 5.1: High-Level Layered System Architecture of UrbanClean
-- Figure 5.2: DB Browser for SQLite — `accounts` & `complaints` Tables
-- Figure 5.3: DB Browser for SQLite — `driver_routes` & `notifications` Tables
-- Figure 5.4: DB Browser for SQLite — `drivers` Fleet Roster Table
-- Figure 6.1: Public Landing Page, Multi-Role Login & Citizen Registration (`index.html` & `login.html`)
-- Figure 6.2: Citizen Waste Reporting Interface & Interactive Map Pinning (`citizen.html`)
+- Figure 5.1: Prototype — Public Landing Page & Cleanliness Statistics
+- Figure 5.2: Prototype — Multi-Role Unified Authentication Portal
+- Figure 5.3: Prototype — Citizen Registration & Account Creation
+- Figure 5.4: Prototype — Citizen Waste Reporting & Incident Logging Form
+- Figure 5.5: Prototype — Interactive Geographic Location Selection & Map Canvas
+- Figure 5.6: Prototype — Citizen Real-Time Complaint Tracking & Lifecycle Dashboard
+- Figure 5.7: Prototype — Waste Collection Driver Duty Dashboard
+- Figure 5.8: Prototype — Driver TSP Route Optimization & Real-Road Navigation Map
+- Figure 5.9: Prototype — Proof-of-Cleanup Image Upload & Verification Interface
+- Figure 5.10: Prototype — Municipal Administrator Command Center & Analytics Dashboard
+- Figure 5.11: Prototype — City-Wide Waste Monitoring Map & GIS Filtering
+- Figure 5.12: Prototype — Municipal Monthly Compliance Tracking & Data Export Report
+- Figure 5.13: UrbanClean Backend Structure and Data Flow
+- Figure 5.14: DB Browser for SQLite — accounts & complaints Tables
+- Figure 5.15: DB Browser for SQLite — driver_routes & notifications Tables
+- Figure 5.16: DB Browser for SQLite — drivers Fleet Roster Table
+- Figure 6.1: Public Landing Page, Multi-Role Login & Citizen Registration
+- Figure 6.2: Citizen Waste Reporting Interface & Interactive Map Pinning
 - Figure 6.3: GPS Geolocation Telemetry, Citizen Ticket Tracking & Driver Dashboard
-- Figure 6.4: Driver Optimized Route Map (5 Stops) & Proof-of-Cleanup Upload (`driver.html`)
-- Figure 6.5: Municipal Administrator Command Center, Active Drivers & Daily Complaints Modal (`admin.html`)
+- Figure 6.4: Driver Optimized Route Map (5 Stops) & Proof-of-Cleanup Upload
+- Figure 6.5: Municipal Administrator Command Center, Active Drivers & Daily Complaints Modal
 - Figure 6.6: City-Wide Waste Monitoring Map & Monthly Compliance Tracking Report with Excel Export
-- Figure 6.7: Mobile Responsive Device View across Smartphone Viewport (`http://192.168.1.7:3000`)
-- Figure 7.1: Unit Testing Suite Execution Output (`unit_tests.js` — S23)
-- Figure 7.2: REST API & Component Integration Verification (`integration_tests.js` — S24)
-- Figure 7.3: Dual Persistence (db.json <-> SQLite) Sync Verification (`verify_db_sync.py` — S25)
+- Figure 6.7: Mobile Responsive Device View across Smartphone Viewport
+- Figure 7.1: Unit Testing Suite Execution Output (unit_tests.js — S23)
+- Figure 7.2: REST API & Component Integration Verification (integration_tests.js — S24)
+- Figure 7.3: Dual Persistence (db.json <-> SQLite) Sync Verification (verify_db_sync.py — S25)
 - Figure 8.1: GitHub Repository Remote & Branch Configuration (S44)
-- Figure 8.2: GitHub Project Directory Structure (`git ls-tree` — S45)
-- Figure 8.3: Source Code Tracking & Working Tree Commit Inspection (`git log -n 1 --stat` — S46)
-- Figure 8.4: Git Commit History Timeline & Provenance Audit (`git log --graph --oneline` — S47)
+- Figure 8.2: GitHub Project Directory Structure (git ls-tree — S45)
+- Figure 8.3: Source Code Tracking & Working Tree Commit Inspection (git log -n 1 --stat — S46)
+- Figure 8.4: Git Commit History Timeline & Provenance Audit (git log --graph --oneline — S47)
 - Figure 9.1: Autocannon Basic Load Testing Configuration (S37)
 - Figure 9.2: Autocannon Live Concurrency Load Execution Progress (S38)
 - Figure 9.3: Autocannon Concurrency Load Test Final Results (S39)
-- Figure 9.4: REST API Response Time & Latency Benchmark (`benchmark_latency.js` — S36)
+- Figure 9.4: REST API Response Time & Latency Benchmark (benchmark_latency.js — S36)
 - Figure 9.5: Input Validation Failure — Duplicate Account & Password Constraints (S30)
-- Figure 9.6: Cryptographic Session Authentication — `POST /api/login` (S32)
+- Figure 9.6: Cryptographic Session Authentication — POST /api/login (S32)
 - Figure 9.7: Defect BUG-01: Raw 500 Stack Trace on Invalid File MIME Upload (S40)
 - Figure 9.8: Defect BUG-01 Retest: Graceful HTTP 400 Bad Request JSON Response (S41)
 
@@ -266,12 +236,12 @@ The platform establishes an automated complaint lifecycle (**Pending → Assigne
 - Table 2.4: Software Technology Stack Specifications
 - Table 3.1: Work Breakdown Structure (WBS)
 - Table 3.2: Project Milestone Schedule (Project Gantt Chart Sem-V 2026-27)
-- Table 3.3: Risk Identification, Assessment, and Mitigation Matrix
-- Table 5.1: Data Dictionary — `accounts` Table
-- Table 5.2: Data Dictionary — `complaints` Table
-- Table 5.3: Data Dictionary — `driver_routes` Table
-- Table 5.4: Data Dictionary — `drivers` Table
-- Table 5.5: Data Dictionary — `notifications` Table
+- Table 5.1: Prototype–Architecture Tier Mapping
+- Table 5.2: Data Dictionary — accounts Table
+- Table 5.3: Data Dictionary — complaints Table
+- Table 5.4: Data Dictionary — driver_routes Table
+- Table 5.5: Data Dictionary — drivers Table
+- Table 5.6: Data Dictionary — notifications Table
 - Table 7.1: Master Software Testing Test Case Log (TC-01 through TC-52)
 - Table 7.2: Test Cases Category Breakdown and Execution Metrics
 - Table 10.1: Evaluated Operational Fuel Savings Across Municipal Fleets
