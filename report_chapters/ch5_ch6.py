@@ -144,6 +144,111 @@ The operational information flows across the platform are illustrated by Context
 - **Level 0 (Context Diagram):** Citizens inject complaints and photos and receive status tracking; Drivers receive assignments and route navigation and return cleanup proof; Administrators receive KPIs and audit data and transmit driver assignments.
 - **Level 1 (Core Module Data Exchanges):** Traces data flow from (1.0 Registration & Login) to Accounts Store, (2.0 Complaint Submission) to Complaints Store, (3.0 Proximity & TSP Engine) calculating routes, (4.0 Route Lock & Dispatch) freezing driver queues, (5.0 Resolution Verification) storing proof photos, and (6.0 Municipal Analytics & CSV Export) serving administrative oversight.
 
+## 5.11 Prototype / User Interface Design
+The prototype design phase serves as a vital bridge between abstract architectural specifications and concrete software implementation. In modern software engineering lifecycles, user interface prototyping validates interaction paradigms, navigational flow, screen hierarchy, and information density prior to full-scale frontend development. The conceptual prototypes for UrbanClean were formulated using a user-centered design (UCD) approach, prioritizing accessibility, minimal cognitive load for citizens reporting incidents in field conditions, streamlined workflow efficiency for field collection drivers, and comprehensive operational situational awareness for municipal administrators.
+
+### UI/UX Design Methodology
+The design of UrbanClean's interfaces follows four foundational design principles:
+1. **User-Centered Role Separation:** Interface layouts are strictly partitioned across three primary user roles—Citizens, Drivers, and Municipal Administrators—alongside a public guest experience. Each portal exposes exclusively the controls, telemetric cards, and navigational actions relevant to the logged-in actor's functional responsibilities.
+2. **Visual Hierarchy and Glassmorphic Styling:** A modern aesthetic employing high-contrast typography, distinctive visual cards, crisp data tables, and translucent glassmorphism accents ensures legibility under diverse lighting environments, including outdoor handheld usage.
+3. **Responsive and Device-Agnostic Layouts:** Viewports are engineered with fluid CSS grid and flexbox constructs, guaranteeing functional fidelity across desktop workstations (1920x1080), administrative dashboard displays, tablets, and mobile smartphone displays (360x640 to 414x896).
+4. **GIS Map Usability and Spatial Interaction:** Geospatial mapping components utilize intuitive pan-and-zoom controls, distinctive color-coded markers representing incident urgency, interactive location pinning, and dynamic polyline overlays for turn-by-turn routing visualization.
+
+*Distinction Note:* The wireframe interface mockups presented in this section (Figures 5.5 through 5.16) illustrate the conceptual architectural UI designs and layout schematics formulated during the design phase. These prototype models contrast with the actual production execution screenshots documented in Chapter 6 (Figures 6.1 through 6.7), which capture the fully realized, styled runtime application running on live local servers.
+
+[INSERT FIGURE HERE: Figure 5.5]
+*Figure 5.5: Prototype — Public Landing Page & Cleanliness Statistics*
+
+### Explanation of Figure 5.5:
+Figure 5.5 illustrates the conceptual wireframe prototype for the public guest landing page. The interface features a prominent navigation header with direct login routing, a hero section detailing municipal cleanliness objectives, three live statistical counter cards summarizing city-wide cleanliness impact (Issues Resolved, Active Complaints, and Registered Citizens), and a read-only interactive map overview displaying resolved and pending waste incidents across municipal zones.
+
+[INSERT FIGURE HERE: Figure 5.6]
+*Figure 5.6: Prototype — Multi-Role Unified Authentication Portal*
+
+### Explanation of Figure 5.6:
+Figure 5.6 displays the prototype design for the unified multi-role authentication interface. To minimize authentication friction while enforcing strict role separation, the interface incorporates segmented tab selectors allowing users to switch between Citizen, Driver, and Municipal Administrator login modes, each paired with username/email and password credential fields, client-side validation triggers, and direct registration redirects.
+
+[INSERT FIGURE HERE: Figure 5.7]
+*Figure 5.7: Prototype — Citizen Registration & Account Creation*
+
+### Explanation of Figure 5.7:
+Figure 5.7 depicts the architectural mockup of the citizen registration interface. The form captures essential citizen identity attributes—including full name, phone number, residential municipal ward, email address, and secure password credentials—with immediate client-side format validation before submitting user payload objects to the backend cryptographic salting and hashing service.
+
+[INSERT FIGURE HERE: Figure 5.8]
+*Figure 5.8: Prototype — Citizen Waste Reporting & Incident Logging Form*
+
+### Explanation of Figure 5.8:
+Figure 5.8 presents the prototype wireframe for the citizen waste complaint reporting form. Designed for rapid incident logging, the interface provides dropdown categorization (Household, Hazardous, Recyclable, Construction, Electronic), detailed landmark input fields, a W3C GPS auto-detection button, photographic evidence upload controls with 5 MB file constraint indicators, and an interactive submission action invoking the REST complaint ingestion pipeline.
+
+[INSERT FIGURE HERE: Figure 5.9]
+*Figure 5.9: Prototype — Interactive Geographic Location Selection & Map Canvas*
+
+### Explanation of Figure 5.9:
+Figure 5.9 illustrates the conceptual design for the interactive Leaflet map canvas embedded within the citizen reporting view. When automated GPS satellite positioning is unavailable or imprecise, citizens can pan across the cartographic tile layer and click directly on the canvas to drop a repositionable marker, automatically extracting latitude and longitude coordinates and triggering reverse-geocoding to resolve street-level landmark text.
+
+[INSERT FIGURE HERE: Figure 5.10]
+*Figure 5.10: Prototype — Citizen Real-Time Complaint Tracking & Lifecycle Dashboard*
+
+### Explanation of Figure 5.10:
+Figure 5.10 delineates the prototype design for the citizen complaint tracking dashboard. The screen presents a filterable tabular overview of all historical complaints submitted by the authenticated citizen account, showcasing ticket identifier badges, submission dates, waste category chips, thumbnail evidence previews, and color-coded lifecycle status tags (Pending, Assigned, In Progress, Completed).
+
+[INSERT FIGURE HERE: Figure 5.11]
+*Figure 5.11: Prototype — Waste Collection Driver Duty Dashboard*
+
+### Explanation of Figure 5.11:
+Figure 5.11 showcases the prototype layout for the waste collection driver operational dashboard. The interface equips collection drivers with essential field telemetry, including assigned vehicle identifiers, active duty shift status, daily collection quotas, and an interactive queue of assigned waste collection stops populated through administrative dispatch.
+
+[INSERT FIGURE HERE: Figure 5.12]
+*Figure 5.12: Prototype — Driver TSP Route Optimization & Real-Road Navigation Map*
+
+### Explanation of Figure 5.12:
+Figure 5.12 displays the architectural mockup for the driver route optimization and navigation workspace. The prototype demonstrates the integration of the Greedy Nearest-Neighbor Traveling Salesperson Problem (TSP) algorithm with OSRM routing services, projecting sequenced collection waypoints, road-following navigation polylines, cumulative driving distance, and estimated transit times across the interactive map viewport.
+
+[INSERT FIGURE HERE: Figure 5.13]
+*Figure 5.13: Prototype — Proof-of-Cleanup Image Upload & Verification Interface*
+
+### Explanation of Figure 5.13:
+Figure 5.13 illustrates the prototype wireframe for the post-collection verification and proof upload interface. To maintain accountability and prevent premature ticket closure, the form requires drivers to capture an on-site completion photograph, select the resolved ticket ID, enter operational notes, and transmit the multipart form to transition the ticket lifecycle to Completed.
+
+[INSERT FIGURE HERE: Figure 5.14]
+*Figure 5.14: Prototype — Municipal Administrator Command Center & Analytics Dashboard*
+
+### Explanation of Figure 5.14:
+Figure 5.14 presents the prototype layout for the municipal administrator command center. The dashboard provides executive situational awareness through high-level metric cards (Total Complaints, Solved Today, Pending Action, Active Field Drivers), real-time incident activity feeds, driver fleet status monitors, and administrative dispatch controls.
+
+[INSERT FIGURE HERE: Figure 5.15]
+*Figure 5.15: Prototype — City-Wide Waste Monitoring Map & GIS Filtering*
+
+### Explanation of Figure 5.15:
+Figure 5.15 showcases the conceptual prototype for the city-wide administrative GIS monitoring map. The viewport displays all reported municipal waste incidents mapped across geographic wards with status-distinctive marker clusters, accompanied by category and status filtering panels, interactive popups detailing complaint specifics, and driver location overlays.
+
+[INSERT FIGURE HERE: Figure 5.16]
+*Figure 5.16: Prototype — Municipal Monthly Compliance Tracking & Data Export Report*
+
+### Explanation of Figure 5.16:
+Figure 5.16 details the prototype design for the municipal compliance reporting and data export interface. The view aggregates monthly incident resolution metrics, SLA compliance percentages, driver performance statistics, and ward-level distribution tables, featuring an integrated 'Export to CSV / Excel' tool facilitating external municipal auditing and regulatory archiving.
+
+## 5.12 Prototype–Architecture Mapping
+To validate the architectural integrity of the system design, each prototype interface is systematically mapped to corresponding functional components across the three architectural tiers: Presentation Layer, Application/Business Logic Layer, and Data Persistence Layer. Table 5.6 outlines this structural correspondence.
+
+Table 5.6: Prototype–Architecture Tier Mapping
+| Interface Screen Prototype | Presentation Layer Artifact | Application Tier Services & Endpoints | Data Layer Entities & Tables |
+| :--- | :--- | :--- | :--- |
+| Landing Page (Fig 5.5) | index.html, Glassmorphic CSS | GET /api/complaints, Statistics Aggregator | complaints (read-only count) |
+| Multi-Role Login (Fig 5.6) | login.html, Role Tabs, DOM Handler | POST /api/auth/login, PBKDF2 Verifier | accounts (role, passwordHash, salt) |
+| Citizen Registration (Fig 5.7) | login.html (Register Tab), Regex Validator | POST /api/auth/register, Salt Generator | accounts (Insert new user row) |
+| Complaint Form (Fig 5.8) | citizen.html, Multer Form, GPS Button | POST /api/complaints, Multer Ingestion | complaints (status='Pending', photo path) |
+| Map Selection (Fig 5.9) | Leaflet Canvas, OSM Tile Layer | OSM Nominatim Geocoder API | Geo-coordinates (lat, lng, landmark) |
+| Complaint Tracking (Fig 5.10) | citizen.html, Dynamic Table Renderer | GET /api/complaints, User Filter | complaints (userId indexed query) |
+| Driver Dashboard (Fig 5.11) | driver.html, Telemetry Cards, Shift Toggle | GET /api/driver/routes, Roster Service | drivers, driverRoutes |
+| Route Navigation (Fig 5.12) | Leaflet Polylines, OSRM Renderer | POST /api/routes/optimize, TSP Engine | driverRoutes, complaints (lat, lng) |
+| Proof Upload (Fig 5.13) | driver.html, Cleanup Modal, File Upload | POST /api/complaints/:id/resolve, Multer | complaints (proofPhoto, status='Completed') |
+| Admin Command Center (Fig 5.14) | admin.html, KPI Metric Cards, Activity Feed | GET /api/admin/metrics, Dispatcher | accounts, complaints, drivers |
+| Monitoring Map (Fig 5.15) | Leaflet GIS Layer, Category Filter Drawer | GET /api/complaints/all, GeoJSON Stream | complaints (All active & solved rows) |
+| Compliance Report (Fig 5.16) | admin.html, Reporting Grid, CSV Exporter | GET /api/admin/export-csv, Analytics Engine | dailyRouteSnapshots, complaints audit |
+
+This systematic alignment ensures that every graphical control exposed to end users is directly backed by robust RESTful routing logic, deterministic business rules, and synchronized dual-persistence database stores.
+
 ---
 
 # CHAPTER 6 — APPLICATION DEVELOPMENT
