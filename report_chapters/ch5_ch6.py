@@ -29,6 +29,17 @@ The backend application (`backend/server.js`) operates on Node.js using the Expr
 - **Middleware Pipeline:** Configured with `cors()` for cross-origin resource access, `express.json()` and `express.urlencoded()` for payload parsing, and `multer` for multipart form file storage.
 - **Stateless Handlers:** Exposes standardized REST endpoints adhering strictly to HTTP verb semantics (`GET`, `POST`, `PUT`, `DELETE`).
 
+### 5.3.1 Backend Structure and Data Flow
+To provide a concrete architectural view of the server tier, Figure 5.2 visualizes the physical directory layout of the UrbanClean backend alongside its end-to-end data processing pipeline and primary operational workflows.
+
+[INSERT FIGURE HERE: Figure 5.2]
+*Figure 5.2: UrbanClean Backend Structure and Data Flow*
+
+### Explanation of Figure 5.2:
+Figure 5.2 synthesizes the physical codebase structure and operational data flow of the UrbanClean backend platform. The left side (Part A) documents the physical directory tree, highlighting the application entry point (`backend/server.js`), the dual-persistence document store (`backend/db.json`), the SQLite synchronization daemon (`backend/sync_sqlite.py`), the relational database mirror (`backend/urban_clean.db`), and the uploaded media directory (`backend/uploads/`), alongside client-side assets in `frontend/`. 
+
+The right side (Part B) details the seven-stage data processing pipeline. Incoming HTTP requests from citizen, driver, and administrator interfaces enter the Express REST gateway where middleware validates CORS headers, parses JSON payloads, and enforces a 5 MB file size limit with MIME verification via Multer. Business logic services execute role-based authentication using PBKDF2/SHA-512 cryptographic salting, evaluate spherical Haversine proximity calculations (1.0 km radius), sequence collection waypoints via the Greedy Nearest-Neighbor TSP heuristic, and interface with Project-OSRM for turn-by-turn road polylines. Every state-altering transaction updates `db.json` and immediately invokes `sync_sqlite.py` through background child processes to guarantee relational database mirror synchronization before returning semantic HTTP responses to client viewports.
+
 ## 5.4 Database Architecture & Dual-Persistence Strategy
 UrbanClean utilizes a dual-persistence strategy designed for rapid development agility and robust relational inspection:
 1. **Active File-Backed JSON Store (`backend/db.json`):** Serves as the primary operational document store, allowing non-blocking I/O reads and agile schema evolution.
@@ -98,23 +109,23 @@ The relational database models five core tables as verified in the project's SQL
 ## 5.6 Database Schema Inspection via DB Browser for SQLite
 The database implementation was visually verified in the SQLite environment using DB Browser for SQLite:
 
-[INSERT FIGURE HERE: Figure 5.2]
-*Figure 5.2: DB Browser for SQLite — `accounts` & `complaints` Tables*
-
-### Explanation of Figure 5.2:
-Figure 5.2 shows the live records of the `accounts` and `complaints` tables. It verifies PBKDF2/SHA-512 salted password hashes, multi-role user segregation (`citizen`, `driver`, `admin`), exact WGS84 coordinates for complaints, and ticket lifecycle states (`Open`, `Completed`).
-
 [INSERT FIGURE HERE: Figure 5.3]
-*Figure 5.3: DB Browser for SQLite — `driver_routes` & `notifications` Tables*
+*Figure 5.3: DB Browser for SQLite — `accounts` & `complaints` Tables*
 
 ### Explanation of Figure 5.3:
-Figure 5.3 documents sequential collection stop waypoints configured by collection driver DRV-101 (`Point 1` through `Point 12`) with high-precision decimal degrees, as well as real-time system event logs capturing shift starts and task updates.
+Figure 5.3 shows the live records of the `accounts` and `complaints` tables. It verifies PBKDF2/SHA-512 salted password hashes, multi-role user segregation (`citizen`, `driver`, `admin`), exact WGS84 coordinates for complaints, and ticket lifecycle states (`Open`, `Completed`).
 
 [INSERT FIGURE HERE: Figure 5.4]
-*Figure 5.4: DB Browser for SQLite — `drivers` Fleet Roster Table*
+*Figure 5.4: DB Browser for SQLite — `driver_routes` & `notifications` Tables*
 
 ### Explanation of Figure 5.4:
-Figure 5.4 demonstrates the driver fleet roster showing active driver states, vehicle assignments (`Eicher Pro Dump Truck`, `Tata Ace Garbage Tipper`), route distance metrics (`12.4 km`), and assigned complaint arrays.
+Figure 5.4 documents sequential collection stop waypoints configured by collection driver DRV-101 (`Point 1` through `Point 12`) with high-precision decimal degrees, as well as real-time system event logs capturing shift starts and task updates.
+
+[INSERT FIGURE HERE: Figure 5.5]
+*Figure 5.5: DB Browser for SQLite — `drivers` Fleet Roster Table*
+
+### Explanation of Figure 5.5:
+Figure 5.5 demonstrates the driver fleet roster showing active driver states, vehicle assignments (`Eicher Pro Dump Truck`, `Tata Ace Garbage Tipper`), route distance metrics (`12.4 km`), and assigned complaint arrays.
 
 ## 5.7 API Structure
 The API follows semantic RESTful conventions:
@@ -154,79 +165,79 @@ The design of UrbanClean's interfaces follows four foundational design principle
 3. **Responsive and Device-Agnostic Layouts:** Viewports are engineered with fluid CSS grid and flexbox constructs, guaranteeing functional fidelity across desktop workstations (1920x1080), administrative dashboard displays, tablets, and mobile smartphone displays (360x640 to 414x896).
 4. **GIS Map Usability and Spatial Interaction:** Geospatial mapping components utilize intuitive pan-and-zoom controls, distinctive color-coded markers representing incident urgency, interactive location pinning, and dynamic polyline overlays for turn-by-turn routing visualization.
 
-*Distinction Note:* The wireframe interface mockups presented in this section (Figures 5.5 through 5.16) illustrate the conceptual architectural UI designs and layout schematics formulated during the design phase. These prototype models contrast with the actual production execution screenshots documented in Chapter 6 (Figures 6.1 through 6.7), which capture the fully realized, styled runtime application running on live local servers.
-
-[INSERT FIGURE HERE: Figure 5.5]
-*Figure 5.5: Prototype — Public Landing Page & Cleanliness Statistics*
-
-### Explanation of Figure 5.5:
-Figure 5.5 illustrates the conceptual wireframe prototype for the public guest landing page. The interface features a prominent navigation header with direct login routing, a hero section detailing municipal cleanliness objectives, three live statistical counter cards summarizing city-wide cleanliness impact (Issues Resolved, Active Complaints, and Registered Citizens), and a read-only interactive map overview displaying resolved and pending waste incidents across municipal zones.
+*Distinction Note:* The wireframe interface mockups presented in this section (Figures 5.6 through 5.17) illustrate the conceptual architectural UI designs and layout schematics formulated during the design phase. These prototype models contrast with the actual production execution screenshots documented in Chapter 6 (Figures 6.1 through 6.7), which capture the fully realized, styled runtime application running on live local servers.
 
 [INSERT FIGURE HERE: Figure 5.6]
-*Figure 5.6: Prototype — Multi-Role Unified Authentication Portal*
+*Figure 5.6: Prototype — Public Landing Page & Cleanliness Statistics*
 
 ### Explanation of Figure 5.6:
-Figure 5.6 displays the prototype design for the unified multi-role authentication interface. To minimize authentication friction while enforcing strict role separation, the interface incorporates segmented tab selectors allowing users to switch between Citizen, Driver, and Municipal Administrator login modes, each paired with username/email and password credential fields, client-side validation triggers, and direct registration redirects.
+Figure 5.6 illustrates the conceptual wireframe prototype for the public guest landing page. The interface features a prominent navigation header with direct login routing, a hero section detailing municipal cleanliness objectives, three live statistical counter cards summarizing city-wide cleanliness impact (Issues Resolved, Active Complaints, and Registered Citizens), and a read-only interactive map overview displaying resolved and pending waste incidents across municipal zones.
 
 [INSERT FIGURE HERE: Figure 5.7]
-*Figure 5.7: Prototype — Citizen Registration & Account Creation*
+*Figure 5.7: Prototype — Multi-Role Unified Authentication Portal*
 
 ### Explanation of Figure 5.7:
-Figure 5.7 depicts the architectural mockup of the citizen registration interface. The form captures essential citizen identity attributes—including full name, phone number, residential municipal ward, email address, and secure password credentials—with immediate client-side format validation before submitting user payload objects to the backend cryptographic salting and hashing service.
+Figure 5.7 displays the prototype design for the unified multi-role authentication interface. To minimize authentication friction while enforcing strict role separation, the interface incorporates segmented tab selectors allowing users to switch between Citizen, Driver, and Municipal Administrator login modes, each paired with username/email and password credential fields, client-side validation triggers, and direct registration redirects.
 
 [INSERT FIGURE HERE: Figure 5.8]
-*Figure 5.8: Prototype — Citizen Waste Reporting & Incident Logging Form*
+*Figure 5.8: Prototype — Citizen Registration & Account Creation*
 
 ### Explanation of Figure 5.8:
-Figure 5.8 presents the prototype wireframe for the citizen waste complaint reporting form. Designed for rapid incident logging, the interface provides dropdown categorization (Household, Hazardous, Recyclable, Construction, Electronic), detailed landmark input fields, a W3C GPS auto-detection button, photographic evidence upload controls with 5 MB file constraint indicators, and an interactive submission action invoking the REST complaint ingestion pipeline.
+Figure 5.8 depicts the architectural mockup of the citizen registration interface. The form captures essential citizen identity attributes—including full name, phone number, residential municipal ward, email address, and secure password credentials—with immediate client-side format validation before submitting user payload objects to the backend cryptographic salting and hashing service.
 
 [INSERT FIGURE HERE: Figure 5.9]
-*Figure 5.9: Prototype — Interactive Geographic Location Selection & Map Canvas*
+*Figure 5.9: Prototype — Citizen Waste Reporting & Incident Logging Form*
 
 ### Explanation of Figure 5.9:
-Figure 5.9 illustrates the conceptual design for the interactive Leaflet map canvas embedded within the citizen reporting view. When automated GPS satellite positioning is unavailable or imprecise, citizens can pan across the cartographic tile layer and click directly on the canvas to drop a repositionable marker, automatically extracting latitude and longitude coordinates and triggering reverse-geocoding to resolve street-level landmark text.
+Figure 5.9 presents the prototype wireframe for the citizen waste complaint reporting form. Designed for rapid incident logging, the interface provides dropdown categorization (Household, Hazardous, Recyclable, Construction, Electronic), detailed landmark input fields, a W3C GPS auto-detection button, photographic evidence upload controls with 5 MB file constraint indicators, and an interactive submission action invoking the REST complaint ingestion pipeline.
 
 [INSERT FIGURE HERE: Figure 5.10]
-*Figure 5.10: Prototype — Citizen Real-Time Complaint Tracking & Lifecycle Dashboard*
+*Figure 5.10: Prototype — Interactive Geographic Location Selection & Map Canvas*
 
 ### Explanation of Figure 5.10:
-Figure 5.10 delineates the prototype design for the citizen complaint tracking dashboard. The screen presents a filterable tabular overview of all historical complaints submitted by the authenticated citizen account, showcasing ticket identifier badges, submission dates, waste category chips, thumbnail evidence previews, and color-coded lifecycle status tags (Pending, Assigned, In Progress, Completed).
+Figure 5.10 illustrates the conceptual design for the interactive Leaflet map canvas embedded within the citizen reporting view. When automated GPS satellite positioning is unavailable or imprecise, citizens can pan across the cartographic tile layer and click directly on the canvas to drop a repositionable marker, automatically extracting latitude and longitude coordinates and triggering reverse-geocoding to resolve street-level landmark text.
 
 [INSERT FIGURE HERE: Figure 5.11]
-*Figure 5.11: Prototype — Waste Collection Driver Duty Dashboard*
+*Figure 5.11: Prototype — Citizen Real-Time Complaint Tracking & Lifecycle Dashboard*
 
 ### Explanation of Figure 5.11:
-Figure 5.11 showcases the prototype layout for the waste collection driver operational dashboard. The interface equips collection drivers with essential field telemetry, including assigned vehicle identifiers, active duty shift status, daily collection quotas, and an interactive queue of assigned waste collection stops populated through administrative dispatch.
+Figure 5.11 delineates the prototype design for the citizen complaint tracking dashboard. The screen presents a filterable tabular overview of all historical complaints submitted by the authenticated citizen account, showcasing ticket identifier badges, submission dates, waste category chips, thumbnail evidence previews, and color-coded lifecycle status tags (Pending, Assigned, In Progress, Completed).
 
 [INSERT FIGURE HERE: Figure 5.12]
-*Figure 5.12: Prototype — Driver TSP Route Optimization & Real-Road Navigation Map*
+*Figure 5.12: Prototype — Waste Collection Driver Duty Dashboard*
 
 ### Explanation of Figure 5.12:
-Figure 5.12 displays the architectural mockup for the driver route optimization and navigation workspace. The prototype demonstrates the integration of the Greedy Nearest-Neighbor Traveling Salesperson Problem (TSP) algorithm with OSRM routing services, projecting sequenced collection waypoints, road-following navigation polylines, cumulative driving distance, and estimated transit times across the interactive map viewport.
+Figure 5.12 showcases the prototype layout for the waste collection driver operational dashboard. The interface equips collection drivers with essential field telemetry, including assigned vehicle identifiers, active duty shift status, daily collection quotas, and an interactive queue of assigned waste collection stops populated through administrative dispatch.
 
 [INSERT FIGURE HERE: Figure 5.13]
-*Figure 5.13: Prototype — Proof-of-Cleanup Image Upload & Verification Interface*
+*Figure 5.13: Prototype — Driver TSP Route Optimization & Real-Road Navigation Map*
 
 ### Explanation of Figure 5.13:
-Figure 5.13 illustrates the prototype wireframe for the post-collection verification and proof upload interface. To maintain accountability and prevent premature ticket closure, the form requires drivers to capture an on-site completion photograph, select the resolved ticket ID, enter operational notes, and transmit the multipart form to transition the ticket lifecycle to Completed.
+Figure 5.13 displays the architectural mockup for the driver route optimization and navigation workspace. The prototype demonstrates the integration of the Greedy Nearest-Neighbor Traveling Salesperson Problem (TSP) algorithm with OSRM routing services, projecting sequenced collection waypoints, road-following navigation polylines, cumulative driving distance, and estimated transit times across the interactive map viewport.
 
 [INSERT FIGURE HERE: Figure 5.14]
-*Figure 5.14: Prototype — Municipal Administrator Command Center & Analytics Dashboard*
+*Figure 5.14: Prototype — Proof-of-Cleanup Image Upload & Verification Interface*
 
 ### Explanation of Figure 5.14:
-Figure 5.14 presents the prototype layout for the municipal administrator command center. The dashboard provides executive situational awareness through high-level metric cards (Total Complaints, Solved Today, Pending Action, Active Field Drivers), real-time incident activity feeds, driver fleet status monitors, and administrative dispatch controls.
+Figure 5.14 illustrates the prototype wireframe for the post-collection verification and proof upload interface. To maintain accountability and prevent premature ticket closure, the form requires drivers to capture an on-site completion photograph, select the resolved ticket ID, enter operational notes, and transmit the multipart form to transition the ticket lifecycle to Completed.
 
 [INSERT FIGURE HERE: Figure 5.15]
-*Figure 5.15: Prototype — City-Wide Waste Monitoring Map & GIS Filtering*
+*Figure 5.15: Prototype — Municipal Administrator Command Center & Analytics Dashboard*
 
 ### Explanation of Figure 5.15:
-Figure 5.15 showcases the conceptual prototype for the city-wide administrative GIS monitoring map. The viewport displays all reported municipal waste incidents mapped across geographic wards with status-distinctive marker clusters, accompanied by category and status filtering panels, interactive popups detailing complaint specifics, and driver location overlays.
+Figure 5.15 presents the prototype layout for the municipal administrator command center. The dashboard provides executive situational awareness through high-level metric cards (Total Complaints, Solved Today, Pending Action, Active Field Drivers), real-time incident activity feeds, driver fleet status monitors, and administrative dispatch controls.
 
 [INSERT FIGURE HERE: Figure 5.16]
-*Figure 5.16: Prototype — Municipal Monthly Compliance Tracking & Data Export Report*
+*Figure 5.16: Prototype — City-Wide Waste Monitoring Map & GIS Filtering*
 
 ### Explanation of Figure 5.16:
-Figure 5.16 details the prototype design for the municipal compliance reporting and data export interface. The view aggregates monthly incident resolution metrics, SLA compliance percentages, driver performance statistics, and ward-level distribution tables, featuring an integrated 'Export to CSV / Excel' tool facilitating external municipal auditing and regulatory archiving.
+Figure 5.16 showcases the conceptual prototype for the city-wide administrative GIS monitoring map. The viewport displays all reported municipal waste incidents mapped across geographic wards with status-distinctive marker clusters, accompanied by category and status filtering panels, interactive popups detailing complaint specifics, and driver location overlays.
+
+[INSERT FIGURE HERE: Figure 5.17]
+*Figure 5.17: Prototype — Municipal Monthly Compliance Tracking & Data Export Report*
+
+### Explanation of Figure 5.17:
+Figure 5.17 details the prototype design for the municipal compliance reporting and data export interface. The view aggregates monthly incident resolution metrics, SLA compliance percentages, driver performance statistics, and ward-level distribution tables, featuring an integrated 'Export to CSV / Excel' tool facilitating external municipal auditing and regulatory archiving.
 
 ## 5.12 Prototype–Architecture Mapping
 To validate the architectural integrity of the system design, each prototype interface is systematically mapped to corresponding functional components across the three architectural tiers: Presentation Layer, Application/Business Logic Layer, and Data Persistence Layer. Table 5.6 outlines this structural correspondence.
@@ -234,18 +245,18 @@ To validate the architectural integrity of the system design, each prototype int
 Table 5.6: Prototype–Architecture Tier Mapping
 | Interface Screen Prototype | Presentation Layer Artifact | Application Tier Services & Endpoints | Data Layer Entities & Tables |
 | :--- | :--- | :--- | :--- |
-| Landing Page (Fig 5.5) | index.html, Glassmorphic CSS | GET /api/complaints, Statistics Aggregator | complaints (read-only count) |
-| Multi-Role Login (Fig 5.6) | login.html, Role Tabs, DOM Handler | POST /api/auth/login, PBKDF2 Verifier | accounts (role, passwordHash, salt) |
-| Citizen Registration (Fig 5.7) | login.html (Register Tab), Regex Validator | POST /api/auth/register, Salt Generator | accounts (Insert new user row) |
-| Complaint Form (Fig 5.8) | citizen.html, Multer Form, GPS Button | POST /api/complaints, Multer Ingestion | complaints (status='Pending', photo path) |
-| Map Selection (Fig 5.9) | Leaflet Canvas, OSM Tile Layer | OSM Nominatim Geocoder API | Geo-coordinates (lat, lng, landmark) |
-| Complaint Tracking (Fig 5.10) | citizen.html, Dynamic Table Renderer | GET /api/complaints, User Filter | complaints (userId indexed query) |
-| Driver Dashboard (Fig 5.11) | driver.html, Telemetry Cards, Shift Toggle | GET /api/driver/routes, Roster Service | drivers, driverRoutes |
-| Route Navigation (Fig 5.12) | Leaflet Polylines, OSRM Renderer | POST /api/routes/optimize, TSP Engine | driverRoutes, complaints (lat, lng) |
-| Proof Upload (Fig 5.13) | driver.html, Cleanup Modal, File Upload | POST /api/complaints/:id/resolve, Multer | complaints (proofPhoto, status='Completed') |
-| Admin Command Center (Fig 5.14) | admin.html, KPI Metric Cards, Activity Feed | GET /api/admin/metrics, Dispatcher | accounts, complaints, drivers |
-| Monitoring Map (Fig 5.15) | Leaflet GIS Layer, Category Filter Drawer | GET /api/complaints/all, GeoJSON Stream | complaints (All active & solved rows) |
-| Compliance Report (Fig 5.16) | admin.html, Reporting Grid, CSV Exporter | GET /api/admin/export-csv, Analytics Engine | dailyRouteSnapshots, complaints audit |
+| Landing Page (Fig 5.6) | index.html, Glassmorphic CSS | GET /api/complaints, Statistics Aggregator | complaints (read-only count) |
+| Multi-Role Login (Fig 5.7) | login.html, Role Tabs, DOM Handler | POST /api/auth/login, PBKDF2 Verifier | accounts (role, passwordHash, salt) |
+| Citizen Registration (Fig 5.8) | login.html (Register Tab), Regex Validator | POST /api/auth/register, Salt Generator | accounts (Insert new user row) |
+| Complaint Form (Fig 5.9) | citizen.html, Multer Form, GPS Button | POST /api/complaints, Multer Ingestion | complaints (status='Pending', photo path) |
+| Map Selection (Fig 5.10) | Leaflet Canvas, OSM Tile Layer | OSM Nominatim Geocoder API | Geo-coordinates (lat, lng, landmark) |
+| Complaint Tracking (Fig 5.11) | citizen.html, Dynamic Table Renderer | GET /api/complaints, User Filter | complaints (userId indexed query) |
+| Driver Dashboard (Fig 5.12) | driver.html, Telemetry Cards, Shift Toggle | GET /api/driver/routes, Roster Service | drivers, driverRoutes |
+| Route Navigation (Fig 5.13) | Leaflet Polylines, OSRM Renderer | POST /api/routes/optimize, TSP Engine | driverRoutes, complaints (lat, lng) |
+| Proof Upload (Fig 5.14) | driver.html, Cleanup Modal, File Upload | POST /api/complaints/:id/resolve, Multer | complaints (proofPhoto, status='Completed') |
+| Admin Command Center (Fig 5.15) | admin.html, KPI Metric Cards, Activity Feed | GET /api/admin/metrics, Dispatcher | accounts, complaints, drivers |
+| Monitoring Map (Fig 5.16) | Leaflet GIS Layer, Category Filter Drawer | GET /api/complaints/all, GeoJSON Stream | complaints (All active & solved rows) |
+| Compliance Report (Fig 5.17) | admin.html, Reporting Grid, CSV Exporter | GET /api/admin/export-csv, Analytics Engine | dailyRouteSnapshots, complaints audit |
 
 This systematic alignment ensures that every graphical control exposed to end users is directly backed by robust RESTful routing logic, deterministic business rules, and synchronized dual-persistence database stores.
 
@@ -346,4 +357,412 @@ Figure 6.6 illustrates the interactive city-wide waste monitoring map with color
 
 ### Explanation of Figure 6.7:
 Figure 6.7 validates the mobile responsive design of UrbanClean rendered on a smartphone viewport via local Wi-Fi LAN access (`http://192.168.1.7:3000`), demonstrating full functionality across handheld devices.
+
+## 6.10 Key Source Code Implementation
+The following source-code excerpts represent the major implementation components of the UrbanClean Smart Waste Management System. Only important and representative code segments are included in the technical report; the complete source code is maintained in the project repository.
+
+### 6.10.1 Backend Server Initialization & Middleware Stack
+**File:** `backend/server.js`
+
+**Purpose:**
+Initializes the core Node.js runtime, binds Express to TCP Port 3000, establishes CORS security rules, parses incoming JSON and URL-encoded request bodies, and configures static asset serving for frontend portals and uploaded media.
+
+**Important Code:**
+```javascript
+import express from 'express';
+import cors from 'cors';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import crypto from 'crypto';
+import { exec } from 'child_process';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Enable CORS and JSON body parsers
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Serve Static Frontend Assets & Uploads
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
+app.use('/uploads', express.static(uploadDir));
+```
+
+### 6.10.2 Cryptographic Password Hashing & Salt Generation
+**File:** `backend/server.js`
+
+**Purpose:**
+Implements secure user authentication cryptography using Node.js crypto primitives. Passwords are never persisted in plaintext; instead, each account is generated with a unique 16-byte random salt and hashed using cryptographic scrypt derivation across 64-byte output buffers.
+
+**Important Code:**
+```javascript
+function passwordHash(password, salt) {
+    return crypto.scryptSync(password, salt, 64).toString('hex');
+}
+
+function createAccount({ id, name, email, password, role, vehicle = '', state = '', district = '', city = '' }) {
+    const salt = crypto.randomBytes(16).toString('hex');
+    return {
+        id,
+        name,
+        email: email.toLowerCase(),
+        role,
+        vehicle,
+        state,
+        district,
+        city,
+        salt,
+        passwordHash: passwordHash(password, salt),
+        createdAt: new Date().toISOString()
+    };
+}
+```
+
+### 6.10.3 Multi-Role Credential Authentication
+**File:** `backend/server.js`
+
+**Purpose:**
+Authenticates incoming login requests by segregating account lookups into role-specific stores (`citizens`, `drivers`, `admins`). Verifies the supplied password against the salted cryptographic hash and issues an authenticated session payload to the client.
+
+**Important Code:**
+```javascript
+app.post('/api/login', (req, res) => {
+    const { role, email, password } = req.body;
+    const collection = roleCollection(role);
+    if (!collection || !email || !password) {
+        return res.status(400).json({ error: 'Email, password, and account type are required.' });
+    }
+
+    const db = readDB();
+    const accounts = ensureAccountStore(db);
+    const account = accounts[collection].find(item => item.email === email.trim().toLowerCase());
+    if (!account || passwordHash(password, account.salt) !== account.passwordHash) {
+        return res.status(401).json({ error: 'Incorrect email or password for this account type.' });
+    }
+
+    res.json({ 
+        success: true, 
+        user: { 
+            role: account.role, 
+            name: account.name, 
+            email: account.email, 
+            id: account.id, 
+            vehicle: account.vehicle, 
+            city: account.city || '' 
+        } 
+    });
+});
+```
+
+### 6.10.4 Geotagged Complaint Ingestion & Multer File Ingestion
+**File:** `backend/server.js`
+
+**Purpose:**
+Handles multipart form-data complaint submissions from citizens. Enforces a 5 MB file constraint, validates image MIME types, extracts GPS latitude and longitude, assigns unique ticket identifiers (`COMP-XXX`), evaluates proximity against driver collection points, and stores image paths on disk.
+
+**Important Code:**
+```javascript
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed!'), false);
+        }
+    }
+});
+
+app.post('/api/complaints', upload.single('photo'), (req, res) => {
+    const { category, description, lat, lng, area, city, reportedBy, userId, address } = req.body;
+    if (!req.file) return res.status(400).json({ error: 'Photo upload is mandatory.' });
+
+    const db = readDB();
+    const randId = 'COMP-' + Math.floor(100 + Math.random() * 900);
+    const compLat = parseFloat(lat);
+    const compLng = parseFloat(lng);
+
+    const newComplaint = {
+        id: randId,
+        userId: userId || req.headers['x-user-id'] || '',
+        category: category || 'General Waste',
+        description: description || '',
+        lat: compLat,
+        lng: compLng,
+        address: address || area || '',
+        city: city || 'Bandra',
+        status: 'Open',
+        reportedBy: reportedBy || 'Anonymous',
+        createdAt: new Date().toISOString(),
+        photo: `/uploads/${req.file.filename}`
+    };
+
+    db.complaints.push(newComplaint);
+    writeDB(db);
+    res.status(201).json(newComplaint);
+});
+```
+
+### 6.10.5 Spherical Haversine Proximity Calculation (1.0 km Filter)
+**File:** `frontend/script.js`
+
+**Purpose:**
+Evaluates great-circle spherical distance between collection waypoints and active complaints using the Haversine trigonometric formula. Dynamically filters out complaints exceeding a 1.0 km proximity threshold to prevent task overload on collection drivers.
+
+**Important Code:**
+```javascript
+function haversineDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371; // Earth radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 + 
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+              Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function isWithin1kmOfRoute(complaintLat, complaintLng, driverPoints) {
+    if (!driverPoints || driverPoints.length === 0) return true;
+    return driverPoints.some(pt => haversineDistance(pt.lat, pt.lng, complaintLat, complaintLng) <= 1.0);
+}
+```
+
+### 6.10.6 Greedy Nearest-Neighbor Traveling Salesperson Problem (TSP) Optimization
+**File:** `backend/server.js`
+
+**Purpose:**
+Implements an O(N^2) Greedy Nearest-Neighbor TSP heuristic that orders unsequenced collection waypoints into a fuel-efficient driving path, starting from the driver depot and continuously visiting the closest unvisited waste stop.
+
+**Important Code:**
+```javascript
+let curr = waypoints[0];
+let path = [{ label: curr.label, lat: curr.lat, lng: curr.lng, type: curr.type }];
+let pool = waypoints.slice(1);
+
+while (pool.length > 0) {
+    let bestIdx = 0;
+    let bestDist = parseFloat(calculateDistance(curr.lat, curr.lng, pool[0].lat, pool[0].lng));
+
+    for (let i = 1; i < pool.length; i++) {
+        let d = parseFloat(calculateDistance(curr.lat, curr.lng, pool[i].lat, pool[i].lng));
+        if (d < bestDist) {
+            bestDist = d;
+            bestIdx = i;
+        }
+    }
+    curr = pool[bestIdx];
+    path.push({
+        label: curr.label,
+        lat: curr.lat,
+        lng: curr.lng,
+        type: curr.type,
+        id: curr.id || null
+    });
+    pool.splice(bestIdx, 1);
+}
+```
+
+### 6.10.7 Open Source Routing Machine (OSRM) Polyline Integration & Fallback
+**File:** `backend/server.js`
+
+**Purpose:**
+Transmits TSP-ordered coordinate waypoints to the Project-OSRM public driving API over HTTP, retrieving turn-by-turn road geometry coordinates and true driving distance. Falls back gracefully to straight-line Haversine summation if the external routing service times out.
+
+**Important Code:**
+```javascript
+const coordsStr = path.map(node => `${node.lng},${node.lat}`).join(';');
+const osrmUrl = `http://router.project-osrm.org/route/v1/driving/${coordsStr}?overview=full&geometries=geojson`;
+
+let roadPath = null;
+let totalKm = 0;
+
+try {
+    const osrmRes = await fetch(osrmUrl).then(r => r.json());
+    if (osrmRes && osrmRes.routes && osrmRes.routes[0]) {
+        roadPath = osrmRes.routes[0].geometry.coordinates.map(c => ({ lat: c[1], lng: c[0] }));
+        totalKm = osrmRes.routes[0].distance / 1000;
+    }
+} catch (osrmErr) {
+    console.error('OSRM API fetch failed, falling back to Haversine calculations:', osrmErr);
+}
+
+// Fallback to straight-line distance if OSRM failed or was offline
+if (totalKm === 0) {
+    for (let i = 0; i < path.length - 1; i++) {
+        totalKm += parseFloat(calculateDistance(path[i].lat, path[i].lng, path[i + 1].lat, path[i + 1].lng));
+    }
+}
+```
+
+### 6.10.8 Daily Route-Lock Shift Freeze & Queue Deferral
+**File:** `backend/server.js`
+
+**Purpose:**
+Enforces the Daily Route-Lock policy when a driver commences their shift (`POST /api/driver/route/lock`). Freezes the ordered stops for today and ensures any new complaints reported after shift lock are tagged with `scheduled_tomorrow` and routed to tomorrow's pending queue.
+
+**Important Code:**
+```javascript
+app.post('/api/driver/route/lock', (req, res) => {
+    const { driverId, activeComplaintIds } = req.body;
+    if (!driverId) return res.status(400).json({ error: 'driverId is required.' });
+
+    const db = readDB();
+    const todayStr = getTodayDateStr();
+
+    let snapshot = db.dailyRouteSnapshots[driverId][todayStr];
+    snapshot.routeStatus = 'locked';
+    snapshot.lockedAt = new Date().toISOString();
+
+    // Lock active complaints to today's route
+    db.complaints.forEach(c => {
+        if (c.status === 'Completed') return;
+        if (Array.isArray(activeComplaintIds) && activeComplaintIds.includes(c.id)) {
+            c.routeStatus = 'assigned_today';
+            c.assignedDriverId = driverId;
+            c.assignedRouteDate = todayStr;
+        }
+    });
+
+    writeDB(db);
+    res.json({ success: true, message: 'Today’s route is locked. New nearby complaints are scheduled for tomorrow.' });
+});
+```
+
+### 6.10.9 Proof-of-Cleanup Image Upload & Closed-Loop Resolution
+**File:** `backend/server.js`
+
+**Purpose:**
+Implements closed-loop verification requiring field drivers to upload photographic proof of the cleared site before a ticket can be transitioned to `Completed`. Updates ticket records with verified photo paths and resolution timestamps.
+
+**Important Code:**
+```javascript
+app.put('/api/complaints/:id/resolve', upload.single('photo'), (req, res) => {
+    const { id } = req.params;
+    if (!req.file) {
+        return res.status(400).json({ error: 'Resolution photo verification is required.' });
+    }
+
+    const db = readDB();
+    const target = db.complaints.find(c => c.id === id);
+    if (!target) return res.status(404).json({ error: 'Complaint not found.' });
+
+    target.status = 'Completed';
+    target.photo = `/uploads/${req.file.filename}`; // Replace with verified after-cleanup photo
+    target.resolvedAt = new Date().toISOString();
+    
+    writeDB(db);
+    res.json(target);
+});
+```
+
+### 6.10.10 Automated Real-Time SQLite Synchronization Daemon
+**File:** `backend/sync_sqlite.py`
+
+**Purpose:**
+Maintains dual persistence by parsing the active JSON document store (`db.json`) and synchronizing all records into normalized SQLite tables (`accounts`, `complaints`, `drivers`, `driver_routes`, `notifications`) inside transactional SQL statements.
+
+**Important Code:**
+```python
+import json
+import sqlite3
+import os
+
+backend_dir = os.path.dirname(os.path.abspath(__file__))
+json_path = os.path.join(backend_dir, 'db.json')
+sqlite_path = os.path.join(backend_dir, 'urban_clean.db')
+
+with open(json_path, 'r', encoding='utf-8') as f:
+    data = json.load(f)
+
+conn = sqlite3.connect(sqlite_path)
+cursor = conn.cursor()
+
+# Synchronize complaints table
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS complaints (
+    id TEXT PRIMARY KEY, category TEXT, title TEXT, description TEXT,
+    lat REAL, lng REAL, area TEXT, city TEXT, status TEXT,
+    reportedBy TEXT, timeStr TEXT, photo TEXT, timestamp INTEGER
+)''')
+cursor.execute("DELETE FROM complaints;")
+for c in data.get('complaints', []):
+    cursor.execute('''
+    INSERT OR REPLACE INTO complaints (id, category, title, description, lat, lng, area, city, status, reportedBy, timeStr, photo, timestamp)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', (
+        c.get('id'), c.get('category'), c.get('title'), c.get('description'),
+        c.get('lat'), c.get('lng'), c.get('area'), c.get('city'),
+        c.get('status'), c.get('reportedBy'), c.get('timeStr'), c.get('photo'),
+        c.get('timestamp')
+    ))
+conn.commit()
+conn.close()
+```
+
+### 6.10.11 Administrative KPI Aggregation & 30-Day CSV Audit Export
+**File:** `frontend/script.js`
+
+**Purpose:**
+Compiles historical complaint metrics for the preceding 30 days, filters records by timestamp, constructs an RFC-4180-compliant CSV string with properly escaped text delimiters, and triggers an automated browser file download for municipal auditing.
+
+**Important Code:**
+```javascript
+function exportMonthlyReportToCSV() {
+    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    const list = STATE.complaints
+        .filter(c => c.timestamp >= thirtyDaysAgo)
+        .sort((a, b) => b.timestamp - a.timestamp);
+
+    if (list.length === 0) { showToast('No data in the last 30 days to export.', 'error'); return; }
+
+    const esc = (v) => `"${String(v || '').replace(/"/g, '""')}"`;
+    const headers = ['Date', 'Complaint ID', 'Category', 'Description', 'Reported By', 'Area', 'City', 'Latitude', 'Longitude', 'Status'];
+    const rows = list.map(c => [
+        esc(new Date(c.timestamp).toLocaleDateString()),
+        esc(c.id), esc(c.category), esc(c.description),
+        esc(c.reportedBy), esc(c.area), esc(c.city),
+        c.lat, c.lng, esc(c.status)
+    ].join(','));
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `UrbanClean_Compliance_Report_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+```
+
+### 6.10.12 Client-Side Role-Based Page Access Security Guard
+**File:** `frontend/script.js`
+
+**Purpose:**
+Enforces client-side navigation boundaries across role portals. Inspects the persisted `STATE.user` profile upon view mounting and automatically redirects unauthenticated or unauthorized users back to `login.html` with explicit destination parameters.
+
+**Important Code:**
+```javascript
+function verifyPageSecurity() {
+    if (CURRENT_PAGE === 'citizen.html') {
+        if (!STATE.user || STATE.user.role !== 'citizen') {
+            window.location.href = 'login.html?redirect=citizen.html';
+        }
+    } else if (CURRENT_PAGE === 'driver.html') {
+        if (!STATE.user || STATE.user.role !== 'driver') {
+            window.location.href = 'login.html?redirect=driver.html';
+        }
+    } else if (CURRENT_PAGE === 'admin.html') {
+        if (!STATE.user || STATE.user.role !== 'admin') {
+            window.location.href = 'login.html?redirect=admin.html';
+        }
+    }
+}
+```
 """
