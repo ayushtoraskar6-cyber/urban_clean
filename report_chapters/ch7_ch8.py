@@ -122,17 +122,18 @@ During testing and verification sprints, defects were systematically tracked, is
 
 # CHAPTER 8 — DEPLOYMENT
 
-## 8.1 Cloud Deployment / Local Hosting
+## 8.1 Hosting / Deployment
 UrbanClean is engineered as a lightweight, cross-platform web application optimized for local hosting across municipal intranet environments:
 - **Application Server Hosting:** Operates on Node.js (v18.x–v20.x LTS) with Express.js bound to TCP Port 3000 (`http://localhost:3000`).
 - **Local Network (LAN) Multi-Device Access:** By binding the server to `0.0.0.0:3000`, the application is immediately accessible to multiple client devices on the same local area network (such as field worker smartphones and tablets) via the host machine's IP address (`http://192.168.1.7:3000`).
 - **Data Persistence:** Requires zero external database daemon setup; utilizes the active JSON document store (`db.json`) and embedded SQLite engine (`urban_clean.db`).
-- **Cloud Readiness:** The container-ready architecture allows turnkey containerization via Docker and deployment onto cloud platforms (AWS EC2, Render, Railway) without architectural refactoring.
+- **Cloud Deployment Readiness:** The container-ready architecture allows turnkey containerization via Docker and deployment onto cloud platforms (AWS EC2, Render, Railway) without architectural refactoring.
 
-## 8.2 APK Build
-As evaluated against syllabus requirements:
-- **Architectural Status:** **Not Applicable** — UrbanClean is engineered exclusively as a cross-platform responsive web application. No native Android Package Kit (APK) was built.
-- **Architectural Rationale:** Municipal solid waste management involves diverse citizen demographics and transient field operators. Mandating native APK downloads creates severe barriers to civic participation (storage constraints, app store approval delays, operating system version incompatibilities). By leveraging modern HTML5 Geolocation APIs, Leaflet.js mobile touch gestures, and responsive CSS Grid/Flexbox layouts, UrbanClean provides native-like mobile performance without requiring APK compilation, code signing, or app store distribution.
+## 8.2 Responsive or Mobile Deployment
+UrbanClean is architected with a mobile-first, browser-agnostic deployment strategy that replaces native binary packaging with universal web accessibility:
+- **Web-First Cross-Platform Execution:** Rather than mandating native Android Package Kit (APK) compilation and distribution—which imposes severe app store installation barriers, storage constraints, and operating system incompatibilities—the platform deploys as a fully responsive Progressive Web Application (PWA) compatible with any smartphone, tablet, or desktop browser.
+- **Hardware Integration via Web Standards:** Field drivers and reporting citizens seamlessly utilize native hardware capabilities (device GPS receivers, rear camera photograph capture, touch gestures) directly through standardized W3C Geolocation and HTML5 Media Capture APIs.
+- **Field Worker Accessibility:** On-field collection drivers access their route navigation workspace (`driver.html`) on Android and iOS mobile devices over the municipal Wi-Fi/cellular subnet (`http://192.168.1.7:3000`), benefiting from native-like UI responsiveness and touch-friendly controls with zero installation footprint.
 
 ## 8.3 Server Configuration
 The server runtime environment is configured for security, performance, and multi-client access:

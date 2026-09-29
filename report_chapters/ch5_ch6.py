@@ -1,113 +1,205 @@
 # -*- coding: utf-8 -*-
 """
 Chapter 5 (System Architecture Design) & Chapter 6 (Application Development)
-Restructured strictly to the required syllabus topics.
+Structured strictly according to the required academic format.
 """
 
 CH5_CH6_TEXT = r"""# CHAPTER 5 — SYSTEM ARCHITECTURE DESIGN
 
-## 5.1 Frontend Architecture — Prototype
-The frontend architecture of UrbanClean is designed around a lightweight, responsive Single-Page Application (SPA) paradigm with a modern Glassmorphism visual design system. In place of heavy JavaScript application frameworks that induce high memory footprints on mobile client browsers, the interface utilizes modular semantic HTML5, CSS custom properties, and client DOM controllers (`script.js`) paired with the Leaflet.js (v1.9.4) vector mapping canvas.
+## 5.1 Overall System Architecture
+The system architecture of **UrbanClean** is engineered around a modern, decoupled, multi-tier client-server paradigm designed for high availability, low latency, and zero infrastructure capital expense. The platform coordinates civic grievance reporting, driver fleet route optimization, and municipal administrative governance through an integrated, asynchronous pipeline.
 
-To visualize the user interaction model and aesthetic layout across each stakeholder role prior to full-stack code implementation, high-fidelity prototypes were designed. Figures 5.1 through 5.12 showcase the twelve authoritative interface prototypes governing the UrbanClean platform:
+### Architectural Flow:
+The end-to-end operational processing flow proceeds sequentially across five architectural tiers:
+
+$$\text{User / Client Device} \longrightarrow \text{Frontend UI} \longrightarrow \text{Backend / Express Server} \longrightarrow \text{API / Business Logic} \longrightarrow \text{Database Storage}$$
+
+1. **User / Client Device Tier:** Stakeholders (Citizens, Drivers, Municipal Administrators, and Public Guests) interact with the application using standard desktop web browsers (Google Chrome, Microsoft Edge, Mozilla Firefox) or mobile smartphone viewports without requiring dedicated native app installation.
+2. **Frontend Presentation Tier:** Built as a responsive Single-Page Application (SPA) using semantic HTML5, CSS3 Custom Properties styled with a modern translucent Glassmorphism design system, and modular JavaScript (ES6+) client controllers (`script.js`). Geospatial mapping is rendered via the lightweight Leaflet.js (v1.9.4) engine.
+3. **Backend / Express Server Tier:** An asynchronous, event-driven Node.js runtime environment running an Express.js HTTP server (`backend/server.js`) listening on TCP Port 3000. It manages incoming HTTP requests, enforces Cross-Origin Resource Sharing (`cors`), parses JSON/URL-encoded bodies, and intercepts multipart form-data via `multer`.
+4. **API / Business Logic Tier:** Encapsulates the core algorithmic computation and validation services:
+   - *Authentication Service:* Cryptographic PBKDF2/SHA-512 password hashing with 16-byte random salts.
+   - *Geospatial Filtering Engine:* Spherical Haversine distance calculator evaluating a 1.0 km proximity boundary.
+   - *Fleet Route Optimizer:* Internal Greedy Nearest-Neighbor Traveling Salesperson Problem (TSP) algorithm that orders collection waypoints in $O(N^2)$ time.
+   - *Daily Route-Lock Engine:* Shift stabilization controller that snapshots active driver routes and defers late submissions to tomorrow's queue.
+   - *Municipal Analytics Engine:* Ward-locked KPI aggregation and 30-day compliance report generation.
+5. **External Microservices Tier (Actively Utilized in Project):**
+   - *OpenStreetMap (OSM) Tile Servers:* Provides global, royalty-free raster map tiles streamed over HTTPS for basemap visualization.
+   - *Project-OSRM Driving Engine (`router.project-osrm.org`):* Dedicated road routing service that converts ordered TSP waypoints into street-level turn-by-turn navigation polylines and road travel distances.
+   - *OSM Nominatim API:* Provides reverse geocoding to resolve GPS latitude and longitude coordinates into human-readable street addresses.
+6. **Persistence Tier:** A dual-persistence storage architecture comprising an active in-memory and disk-backed JSON document store (`backend/db.json`) mirrored in real time into an embedded relational SQLite database (`backend/urban_clean.db`) via an automated Python synchronization daemon (`backend/sync_sqlite.py`).
+
+---
+
+## 5.2 Frontend Architecture and Prototype
+The frontend architecture is organized around modular Single-Page Application (SPA) views governed by client-side state managers in `script.js`. Prior to full full-stack deployment, comprehensive high-fidelity interface prototypes were constructed to define the visual layout, user experience (UX) workflows, and role-based interaction boundaries across all twelve system interfaces.
+
+Below, each of the twelve authoritative interface prototypes is documented in the standardized screen-by-screen specification format:
+
+### 5.2.1 Prototype 1 — Public Landing Page
+- **Figure Number:** Figure 5.1
+- **Prototype Title:** UrbanClean Public Landing Page Prototype
+- **Purpose of the Screen:** Serves as the public-facing gateway for civic visitors, presenting high-level municipal cleanliness statistics, system objectives, and quick navigation anchors to civic reporting and authentication.
+- **Intended User / Role:** General Public, Civic Observers, and Unauthenticated Guests.
+- **Main UI Components:** Glassmorphic header navigation bar, Hero banner with call-to-action buttons ("Report Waste", "Sign In"), real-time municipal KPI counter cards (Total Issues Resolved, Active Reports, Cleanliness Rating), and educational feature summary cards.
+- **Main User Action / Workflow:** Visitor arrives at `index.html`, reviews live municipal sanitation metrics, and clicks either "Report Waste" to navigate to civic incident logging or "Login" to access role-segregated portals.
 
 [INSERT FIGURE HERE: Figure 5.1]
-*Figure 5.1: Prototype — Public Landing Page & Cleanliness Statistics*
+*Figure 5.1: UrbanClean Public Landing Page Prototype*
 
-### Explanation of Figure 5.1:
-Figure 5.1 illustrates the public visitor interface accessible to unauthenticated civic observers. It highlights the glassmorphic hero container, real-time KPI metrics (Issues Resolved, Active Reports, Happy Citizens), feature cards, and quick navigation anchors guiding citizens to report issues or log in.
+### 5.2.2 Prototype 2 — Multi-Role Login Portal
+- **Figure Number:** Figure 5.2
+- **Prototype Title:** UrbanClean Multi-Role Unified Authentication Portal Prototype
+- **Purpose of the Screen:** Provides a secure, centralized authentication gateway enforcing role-based access control (RBAC) across Citizens, Drivers, and Municipal Administrators.
+- **Intended User / Role:** Citizens, Collection Drivers, and Municipal Administrators.
+- **Main UI Components:** Segmented tab selector (Citizen / Driver / Admin), email address and password inputs, role-specific badge indicators, "Remember Me" toggle, and "Sign In" action button.
+- **Main User Action / Workflow:** User selects their registered stakeholder role tab, inputs credentials, and submits the form; the client controller dispatches `POST /api/login`, validates the returned PBKDF2 credential token, stores session metadata in `localStorage`, and redirects to the appropriate portal.
 
 [INSERT FIGURE HERE: Figure 5.2]
-*Figure 5.2: Prototype — Multi-Role Unified Authentication Portal*
+*Figure 5.2: UrbanClean Multi-Role Unified Authentication Portal Prototype*
 
-### Explanation of Figure 5.2:
-Figure 5.2 showcases the unified authentication gateway supporting role-based access control. Distinct tab selectors allow Citizens, Drivers, and Municipal Administrators to authenticate with role validation and error feedback.
+### 5.2.3 Prototype 3 — Citizen Registration
+- **Figure Number:** Figure 5.3
+- **Prototype Title:** UrbanClean Citizen Registration Prototype
+- **Purpose of the Screen:** Enables new residents to create a verified civic account bound to their residential municipal ward.
+- **Intended User / Role:** Unregistered Community Residents / Citizens.
+- **Main UI Components:** Input fields for Full Name, Email Address, Contact Number, Password (with 8+ character validation indicators), Confirm Password, and Municipal Jurisdiction dropdown (e.g., Kalyan, Bandra, Thane).
+- **Main User Action / Workflow:** Citizen completes all required demographic and security fields, client-side validation verifies password criteria, and the form posts to `POST /api/register`, returning an auto-assigned account identifier (e.g., `CIT-702`) and redirecting to login.
 
 [INSERT FIGURE HERE: Figure 5.3]
-*Figure 5.3: Prototype — Citizen Registration & Account Creation*
+*Figure 5.3: UrbanClean Citizen Registration Prototype*
 
-### Explanation of Figure 5.3:
-Figure 5.3 displays the citizen registration interface. The form captures user full name, email address, password with validation rules, contact number, and residential municipal ward to establish jurisdictional boundaries.
+### 5.2.4 Prototype 4 — Citizen Waste Reporting
+- **Figure Number:** Figure 5.4
+- **Prototype Title:** UrbanClean Citizen Waste Reporting Prototype
+- **Purpose of the Screen:** Provides an intuitive, three-step incident reporting interface allowing residents to lodge geotagged waste grievances with mandatory photographic evidence.
+- **Intended User / Role:** Authenticated Citizens.
+- **Main UI Components:** Standardized waste category selector (Overflowing Bin, Garbage Heap, Hazardous Waste, Dead Animal), descriptive title input, landmark notes textarea, interactive drag-and-drop photo upload dropzone with thumbnail preview, and "Submit Complaint" button.
+- **Main User Action / Workflow:** Citizen classifies the waste incident, attaches a photo, inputs descriptive landmark context, coordinates with the map canvas (Prototype 5), and clicks submit to dispatch a multipart payload to `POST /api/complaints`.
 
 [INSERT FIGURE HERE: Figure 5.4]
-*Figure 5.4: Prototype — Citizen Waste Reporting & Incident Logging Form*
+*Figure 5.4: UrbanClean Citizen Waste Reporting Prototype*
 
-### Explanation of Figure 5.4:
-Figure 5.4 details the primary civic incident reporting interface. Citizens select standardized waste categories, provide landmark descriptions, attach photographic evidence via drag-and-drop dropzones, and invoke geolocation detection.
+### 5.2.5 Prototype 5 — Location Selection and GPS Map
+- **Figure Number:** Figure 5.5
+- **Prototype Title:** UrbanClean Interactive Location Selection and GPS Map Prototype
+- **Purpose of the Screen:** Facilitates high-precision geospatial coordinate capture via browser GPS telemetry or direct map canvas interaction.
+- **Intended User / Role:** Citizens reporting waste incidents.
+- **Main UI Components:** Embedded Leaflet.js interactive vector map, "Auto-Detect GPS" telemetry button, draggable location pin with dynamic coordinate readout (Latitude, Longitude), and reverse-geocoded address display banner.
+- **Main User Action / Workflow:** Citizen clicks "Auto-Detect GPS" to query the W3C Geolocation API or clicks directly on the Leaflet map; a draggable pin is placed, and the resolved coordinates and street name automatically populate the complaint form fields.
 
 [INSERT FIGURE HERE: Figure 5.5]
-*Figure 5.5: Prototype — Interactive Geographic Location Selection & Map Canvas*
+*Figure 5.5: UrbanClean Interactive Location Selection and GPS Map Prototype*
 
-### Explanation of Figure 5.5:
-Figure 5.5 demonstrates the Leaflet-powered interactive map selection canvas. Users can drop draggable coordinate pins or click 'Auto-Detect GPS' to capture high-precision coordinates with reverse geocoding.
+### 5.2.6 Prototype 6 — Citizen Complaint Tracking
+- **Figure Number:** Figure 5.6
+- **Prototype Title:** UrbanClean Citizen Complaint Tracking Prototype
+- **Purpose of the Screen:** Delivers transparent, real-time lifecycle tracking of all grievances lodged by the authenticated citizen under strict horizontal privacy isolation.
+- **Intended User / Role:** Authenticated Citizens.
+- **Main UI Components:** "My Reports" data table displaying Ticket ID, Category, Suburb/Area, Submission Timestamp, and standardized color-coded status badges: Yellow (Pending), Blue (Assigned), Orange (In Progress), Green (Completed), with clickable "View Details" action modals.
+- **Main User Action / Workflow:** Citizen opens the dashboard to inspect ticket statuses; clicking "View Details" opens a modal displaying the before-cleanup photo, driver assignment details, and verified after-cleanup resolution photograph once resolved.
 
 [INSERT FIGURE HERE: Figure 5.6]
-*Figure 5.6: Prototype — Citizen Real-Time Complaint Tracking & Lifecycle Dashboard*
+*Figure 5.6: UrbanClean Citizen Complaint Tracking Prototype*
 
-### Explanation of Figure 5.6:
-Figure 5.6 presents the citizen ticket tracking portal ('My Reports'). Each complaint displays its unique ID, waste category, timestamp, color-coded lifecycle status badge, and clickable details modal with before-and-after photographic comparisons.
+### 5.2.7 Prototype 7 — Driver Duty Dashboard
+- **Figure Number:** Figure 5.7
+- **Prototype Title:** UrbanClean Waste Collection Driver Dashboard Prototype
+- **Purpose of the Screen:** Acts as the mobile command workspace for sanitation compactor truck operators, managing shift statuses, assigned stops, and vehicle telemetry.
+- **Intended User / Role:** Municipal Waste Collection Drivers.
+- **Main UI Components:** Operational shift toggle switch (On-Duty / Off-Duty), assigned vehicle registration badge (e.g., Eicher Pro Dump Truck MH-02-ES-4521), scheduled stop count counters, planned travel distance metric cards, and pending stop lists.
+- **Main User Action / Workflow:** Driver toggles status to "On-Duty" upon commencing their shift; the interface loads the driver's assigned collection stops and automatically queries complaints filtered within a 1.0 km geodesic radius.
 
 [INSERT FIGURE HERE: Figure 5.7]
-*Figure 5.7: Prototype — Waste Collection Driver Duty Dashboard*
+*Figure 5.7: UrbanClean Waste Collection Driver Dashboard Prototype*
 
-### Explanation of Figure 5.7:
-Figure 5.7 illustrates the field operator mobile workspace. Drivers toggle shift duty status (Active/Off-Duty), view assigned truck registrations, review scheduled stops, and inspect live distance metrics.
+### 5.2.8 Prototype 8 — Driver Route Optimization
+- **Figure Number:** Figure 5.8
+- **Prototype Title:** UrbanClean Driver TSP Route Optimization Prototype
+- **Purpose of the Screen:** Displays mathematically sequenced collection routes and turn-by-turn real-road navigation geometry to minimize fleet fuel consumption.
+- **Intended User / Role:** Collection Drivers.
+- **Main UI Components:** Full-screen Leaflet navigation canvas, numbered sequential waypoint pins (Depot → Stop 1 → Stop 2 ... → Disposal Facility), blue road polyline layer generated by OSRM, "Generate Optimized Route" trigger, and "Start Shift / Lock Route" button.
+- **Main User Action / Workflow:** Driver clicks "Generate Optimized Route" to execute the Greedy TSP heuristic; the system reorders stops and queries OSRM for street geometry; the driver clicks "Start Shift / Lock Route" to freeze today's operational route snapshot.
 
 [INSERT FIGURE HERE: Figure 5.8]
-*Figure 5.8: Prototype — Driver TSP Route Optimization & Real-Road Navigation Map*
+*Figure 5.8: UrbanClean Driver TSP Route Optimization Prototype*
 
-### Explanation of Figure 5.8:
-Figure 5.8 showcases the driver route optimization interface. The Leaflet map renders numbered collection waypoints ordered via the Greedy TSP heuristic and connected via turn-by-turn road polylines computed by OSRM.
+### 5.2.9 Prototype 9 — Proof-of-Cleanup Upload
+- **Figure Number:** Figure 5.9
+- **Prototype Title:** UrbanClean Proof-of-Cleanup Upload Verification Prototype
+- **Purpose of the Screen:** Enforces closed-loop verification by requiring drivers to submit cryptographic photographic evidence of site remediation before ticket closure.
+- **Intended User / Role:** Collection Drivers.
+- **Main UI Components:** Cleanup modal dialog displaying Ticket ID, before-cleanup reference photo, camera/file capture dropzone for the after-cleanup image, resolution notes input, and "Complete Cleanup" submission button.
+- **Main User Action / Workflow:** Upon physically clearing the waste dump, driver captures an after-cleanup photograph, attaches it to the modal, and submits; the server validates the upload, marks the ticket 'Completed', logs an immutable timestamp, and broadcasts resolution alerts.
 
 [INSERT FIGURE HERE: Figure 5.9]
-*Figure 5.9: Prototype — Proof-of-Cleanup Image Upload & Verification Interface*
+*Figure 5.9: UrbanClean Proof-of-Cleanup Upload Verification Prototype*
 
-### Explanation of Figure 5.9:
-Figure 5.9 details the closed-loop resolution verification modal. Drivers must attach an after-cleanup photograph of the remediated site before the ticket status can transition to 'Completed'.
+### 5.2.10 Prototype 10 — Municipal Administrator Dashboard
+- **Figure Number:** Figure 5.10
+- **Prototype Title:** UrbanClean Municipal Administrator Dashboard Prototype
+- **Purpose of the Screen:** Provides municipal supervisors with executive-level operational oversight, real-time civic KPI monitoring, and fleet dispatch controls.
+- **Intended User / Role:** Municipal Administrators / Ward Supervisors.
+- **Main UI Components:** Territorial jurisdiction header (auto-locked to administrator's municipality, e.g., Kalyan, Bandra), real-time KPI counter cards (Total Reported Today, Pending Collection, In Progress, Solved Today), active driver fleet status roster, and recent complaints management table.
+- **Main User Action / Workflow:** Administrator monitors real-time complaint volumes across wards, reviews driver operational efficiency, overrides automated driver assignments when necessary, and tracks SLA compliance metrics.
 
 [INSERT FIGURE HERE: Figure 5.10]
-*Figure 5.10: Prototype — Municipal Administrator Command Center & Analytics Dashboard*
+*Figure 5.10: UrbanClean Municipal Administrator Dashboard Prototype*
 
-### Explanation of Figure 5.10:
-Figure 5.10 presents the executive command center. Real-time KPI counter cards display Reported Today, Pending, In Progress, and Solved Today, alongside quick management tables.
+### 5.2.11 Prototype 11 — City-Wide Waste Monitoring / GIS Map
+- **Figure Number:** Figure 5.11
+- **Prototype Title:** UrbanClean City-Wide Waste Monitoring and GIS Map Prototype
+- **Purpose of the Screen:** Delivers spatial intelligence and GIS visualization of waste distribution across the entire municipal jurisdiction.
+- **Intended User / Role:** Municipal Administrators and Waste Management Supervisors.
+- **Main UI Components:** Interactive Leaflet GIS map with clustered marker points, status-based color filtering toggles (All, Pending, In Progress, Resolved), driver compactor truck live location markers, and clickable hotspot popups displaying ticket summaries.
+- **Main User Action / Workflow:** Supervisor toggles category and status filters to identify systemic overflow corridors, evaluates spatial density clusters, and coordinates inter-ward resource rebalancing.
 
 [INSERT FIGURE HERE: Figure 5.11]
-*Figure 5.11: Prototype — City-Wide Waste Monitoring Map & GIS Filtering*
+*Figure 5.11: UrbanClean City-Wide Waste Monitoring and GIS Map Prototype*
 
-### Explanation of Figure 5.11:
-Figure 5.11 illustrates the spatial monitoring console for municipal supervisors, plotting city-wide complaint distributions with status-based filtering and driver location tracking.
+### 5.2.12 Prototype 12 — Monthly Compliance Report / Data Export
+- **Figure Number:** Figure 5.12
+- **Prototype Title:** UrbanClean Monthly Compliance Tracking and Data Export Prototype
+- **Purpose of the Screen:** Enables municipal officers to audit 30-day operational compliance, evaluate SLA adherence, and export structured records for external reporting.
+- **Intended User / Role:** Municipal Administrators and Executive Auditors.
+- **Main UI Components:** 30-day compliance data grid (Date, Total Filed, Resolved within 24h, Resolved within 48h, SLA Compliance Rate %), driver fuel efficiency summaries, and "Export to Excel / Download CSV" action button.
+- **Main User Action / Workflow:** Administrator reviews 30-day historical redressal percentages, verifies SLA compliance figures, and clicks "Export to Excel" to download a clean, formatted CSV spreadsheet for administrative documentation.
 
 [INSERT FIGURE HERE: Figure 5.12]
-*Figure 5.12: Prototype — Municipal Monthly Compliance Tracking & Data Export Report*
+*Figure 5.12: UrbanClean Monthly Compliance Tracking and Data Export Prototype*
 
-### Explanation of Figure 5.12:
-Figure 5.12 showcases the compliance audit reporting interface. Supervisors can review 30-day ticket resolutions, evaluate driver performance metrics, and export data formatted as CSV.
+---
 
-### Table 5.1: Prototype–Architecture Tier Mapping
-| Figure | Interface Prototype Name | Primary User Role | Architectural Layer & Technology | Core Interactivity & Functional Role |
-| :---: | :--- | :--- | :--- | :--- |
-| **5.1** | Public Landing & Statistics | Guest / Public | Tier 1: HTML5 / Glassmorphism CSS | Static metrics display, routing anchors |
-| **5.2** | Multi-Role Authentication | All Roles | Tier 1 + Tier 2: Fetch API / Express Auth | Role toggle, PBKDF2 hash credential check |
-| **5.3** | Citizen Registration | Citizen | Tier 1 + Tier 2: Express `/api/register` | Input sanitization, account creation |
-| **5.4** | Waste Reporting Form | Citizen | Tier 1 + Tier 2: Multer File Upload | Category tagging, multipart payload submission |
-| **5.5** | Map Canvas & Pin Drop | Citizen | Tier 1 + Tier 3: Leaflet.js / Nominatim | Click-to-pin, W3C GPS, reverse geocoding |
-| **5.6** | Citizen Ticket Tracker | Citizen | Tier 1 + Tier 2: Express `/api/complaints` | Real-time status lifecycle badges, modal view |
-| **5.7** | Driver Duty Dashboard | Collection Driver | Tier 1 + Tier 2: Driver REST Endpoints | Duty toggle, vehicle roster, shift metrics |
-| **5.8** | TSP Navigation Map | Collection Driver | Tier 1 + Tier 3: Leaflet / Greedy TSP / OSRM | Turn-by-turn road polyline, waypoint sequence |
-| **5.9** | Proof-of-Cleanup Modal | Collection Driver | Tier 1 + Tier 2: Multer Resolution Upload | Photo proof validation, ticket completion |
-| **5.10** | Admin Command Center | Municipal Admin | Tier 1 + Tier 2: Admin Dashboard Gateway | Real-time KPI aggregates, roster oversight |
-| **5.11** | GIS Monitoring Map | Municipal Admin | Tier 1 + Tier 3: Leaflet MarkerCluster / OSM | City-wide geospatial distribution, filtering |
-| **5.12** | Compliance Export Report | Municipal Admin | Tier 1 + Tier 2: CSV Generation Engine | 30-day SLA compliance auditing, CSV export |
+## 5.3 Prototype–Architecture Mapping
+To establish complete traceability between the user-facing prototype designs and the underlying software engineering implementation, Table 5.1 maps each prototype interface to its corresponding frontend components, backend RESTful endpoints, and persistent database entities.
 
-## 5.2 Backend Architecture
+### Table 5.1: Prototype–Architecture Mapping
+| Prototype Feature | Frontend Component | Backend / API Endpoint | Database Table |
+| :--- | :--- | :--- | :--- |
+| **Landing Page** | `index.html` + Glassmorphism CSS | Static Web Server (`GET /`) | — |
+| **Multi-Role Login** | `login.html` (Tabbed RBAC Form) | `POST /api/login` | `accounts` |
+| **Citizen Registration** | `login.html` (Registration Modal) | `POST /api/register` | `accounts` |
+| **Complaint Form** | `citizen.html` (Reporting Form) | `POST /api/complaints` (Multer) | `complaints` |
+| **GPS Location Selection** | Leaflet.js Canvas + Nominatim API | W3C Geolocation + `POST /api/complaints` | `complaints` (`lat`, `lng`, `area`) |
+| **Complaint Tracking** | `citizen.html` ('My Reports' Table) | `GET /api/complaints?userId=CIT-XXX` | `complaints` |
+| **Driver Dashboard** | `driver.html` (Duty Toggle & Roster) | `GET /api/driver/route/today` | `drivers`, `driver_routes` |
+| **Route Optimization** | Leaflet Map + TSP Controller | `POST /api/route-optimize` + OSRM API | `driver_routes` |
+| **Proof-of-Cleanup** | `driver.html` (Resolution Modal) | `PUT /api/complaints/:id/resolve` (Multer) | `complaints` (`photo_after`, `status`) |
+| **Admin Dashboard** | `admin.html` (KPI Counter Cards) | `GET /api/admin/stats`, `GET /api/drivers` | `accounts`, `complaints`, `drivers` |
+| **GIS Monitoring Map** | `admin.html` (Spatial Leaflet Map) | `GET /api/complaints` (All Municipal) | `complaints` (`lat`, `lng`, `status`) |
+| **Compliance Report** | `admin.html` (Compliance Table) | Client CSV Generation / Admin API | `complaints`, `driver_routes` |
+
+---
+
+## 5.4 Backend Architecture
 The backend application (`backend/server.js`) operates on Node.js using the Express.js framework, structured as a modular, decoupled RESTful API gateway:
-- **Port Binding & Network Gateway:** Listens on port 3000 by default (configurable via `PORT` environment variable), binding to `0.0.0.0` for local area network access.
+- **Port Binding & Network Gateway:** Listens on port 3000 by default (configurable via `PORT` environment variable), binding to `0.0.0.0` for local area network access across client devices.
 - **Middleware Pipeline:** Configured with `cors()` for cross-origin access, `express.json()` and `express.urlencoded()` for request body parsing, and `multer` for multipart form-data handling with 5 MB file size caps and image MIME filtering (`image/jpeg`, `image/png`).
 - **Modular Business Logic Services:** Encapsulates Authentication (PBKDF2/SHA-512 salting), Complaint Management, Driver Scheduling (Haversine 1.0 km proximity filter and Greedy TSP heuristic), and Municipal Analytics.
 - **Physical Directory Tree & Pipeline Flow:** Figure 5.13 illustrates the physical codebase directory tree alongside the complete seven-stage transactional data flow pipeline.
 
 [INSERT FIGURE HERE: Figure 5.13]
-*Figure 5.13: UrbanClean Backend Structure and Data Flow*
+*Figure 5.13: UrbanClean Backend Structure and Data Flow Diagram*
 
 ### Explanation of Figure 5.13:
 Figure 5.13 synthesizes the physical codebase structure and operational data flow of the UrbanClean backend platform. The left side (Part A) documents the physical directory tree, highlighting the application entry point (`backend/server.js`), the dual-persistence document store (`backend/db.json`), the SQLite synchronization daemon (`backend/sync_sqlite.py`), the relational database mirror (`backend/urban_clean.db`), and the uploaded media directory (`backend/uploads/`), alongside client-side assets in `frontend/`. 
@@ -121,7 +213,9 @@ The right side (Part B) details the seven-stage data processing pipeline:
 6. *Dual-Layer Persistence Synchronization:* Write transactions update `db.json` and immediately invoke `sync_sqlite.py` via background child processes.
 7. *Semantic HTTP Response:* Clean JSON payloads returned to client interfaces with appropriate HTTP status codes (200, 201, 400, 401, 403, 500).
 
-## 5.3 Database Schema Design — Structure of Data
+---
+
+## 5.5 Database Schema Design
 UrbanClean implements a dual-persistence strategy designed for rapid development agility and robust relational integrity: an active file-backed JSON document store (`backend/db.json`) mirrored synchronously into a normalized SQLite relational database (`backend/urban_clean.db`) via `sync_sqlite.py`.
 
 The structure of data is normalized into five core relational tables:
@@ -203,25 +297,17 @@ Figure 5.15 documents sequential collection stop waypoints configured by collect
 ### Explanation of Figure 5.16:
 Figure 5.16 demonstrates the driver fleet roster showing active driver states, vehicle assignments (`Eicher Pro Dump Truck`), route distance metrics (`12.4 km`), and assigned complaint arrays.
 
-## 5.4 API Structure
-The API follows semantic RESTful conventions, exposing versioned endpoints structured around JSON request and response payloads:
-- `POST /api/register` — Public user registration for Citizens and Drivers with validation.
-- `POST /api/login` — Credential authentication, PBKDF2 hash verification, and session token generation.
-- `GET /api/complaints` — Retrieve complaints filtered by user ID or municipal jurisdiction.
-- `POST /api/complaints` — Multipart complaint submission with photo attachment, GPS coordinates, and category.
-- `PUT /api/complaints/:id/resolve` — Driver cleanup resolution with mandatory proof-of-cleanup photo upload.
-- `GET /api/driver/route/today` — Retrieve today's locked route snapshot and eligible 1.0 km complaints.
-- `POST /api/driver/route/lock` — Freeze today's driver route snapshot, deferring new complaints to tomorrow's queue.
-- `GET /api/driver/route/tomorrow` — Retrieve complaints deferred to tomorrow's shift queue.
-- `GET /api/admin/dashboard` — Fetch aggregated municipal KPIs, complaint hotspot markers, and active driver rosters.
+---
 
-## 5.5 Security Considerations
+## 5.6 Security Considerations
 Security architecture is enforced across client, server, and storage layers:
 - **Authentication & Password Protection:** User passwords are cryptographically salted using a 16-byte random salt and hashed with PBKDF2/SHA-512 over 10,000 iterations. Plaintext passwords are never logged, transmitted, or persisted.
 - **Role-Based Access Control (RBAC):** Portal pages evaluate client session roles, redirecting unauthorized users. Server endpoints validate caller identity, returning HTTP 403 Forbidden on privilege violations.
 - **Horizontal Citizen Data Isolation:** Queries to `GET /api/complaints` filter records by caller ID, ensuring citizens can access only their own filed tickets.
 - **File Upload Protection:** Multer limits uploaded images to a maximum of 5 MB and whitelists MIME types (`image/jpeg`, `image/png`), blocking executable files and arbitrary script uploads.
 - **Input Sanitization:** All user inputs (descriptions, titles, names) are sanitized to neutralize Cross-Site Scripting (XSS) and injection attacks.
+- **API Protection & Error Suppression:** Centralized error-handling middleware intercepts runtime exceptions, suppressing internal stack traces and directory paths to return clean, standardized JSON error responses.
+- **Database Protection:** Relational database operations utilize parameterized SQL statements within `sync_sqlite.py`, preventing SQL injection vulnerabilities.
 
 ---
 
@@ -231,43 +317,43 @@ Security architecture is enforced across client, server, and storage layers:
 The frontend is implemented as lightweight, modular Single-Page Application (SPA) views using vanilla HTML5, CSS3, JavaScript ES6+, and Leaflet.js v1.9.4. Figures 6.1 through 6.7 provide authentic screenshots of the actual running application interfaces:
 
 [INSERT FIGURE HERE: Figure 6.1]
-*Figure 6.1: Public Landing Page, Multi-Role Login & Citizen Registration*
+*Figure 6.1: Public Landing Page, Multi-Role Login & Citizen Registration Views*
 
 ### Explanation of Figure 6.1:
 Figure 6.1 documents the public landing page with live cleanliness KPI counters, the multi-role tabbed login interface (`login.html`), and the citizen account creation view.
 
 [INSERT FIGURE HERE: Figure 6.2]
-*Figure 6.2: Citizen Waste Reporting Interface & Interactive Map Pinning*
+*Figure 6.2: Citizen Waste Reporting Interface & Interactive Map Pinning Views*
 
 ### Explanation of Figure 6.2:
 Figure 6.2 showcases the citizen waste reporting form on `citizen.html`, featuring real-time photo dropzone staging, category classification, and interactive Leaflet map coordinate pinning.
 
 [INSERT FIGURE HERE: Figure 6.3]
-*Figure 6.3: GPS Geolocation Telemetry, Citizen Ticket Tracking & Driver Dashboard*
+*Figure 6.3: GPS Geolocation Telemetry, Citizen Ticket Tracking & Driver Dashboard Views*
 
 ### Explanation of Figure 6.3:
 Figure 6.3 displays high-precision GPS telemetry capture, the citizen real-time ticket tracking table ('My Reports') with color-coded status badges, and the collection driver workspace.
 
 [INSERT FIGURE HERE: Figure 6.4]
-*Figure 6.4: Driver Optimized Route Map (5 Stops) & Proof-of-Cleanup Upload*
+*Figure 6.4: Driver Optimized Route Map (5 Stops) & Proof-of-Cleanup Upload Views*
 
 ### Explanation of Figure 6.4:
 Figure 6.4 illustrates the driver route navigation map displaying five sequenced collection stops connected via OSRM turn-by-turn road polylines, alongside the proof-of-cleanup upload modal.
 
 [INSERT FIGURE HERE: Figure 6.5]
-*Figure 6.5: Municipal Administrator Command Center, Active Drivers & Daily Complaints Modal*
+*Figure 6.5: Municipal Administrator Command Center, Active Drivers & Daily Complaints Modal Views*
 
 ### Explanation of Figure 6.5:
 Figure 6.5 documents the municipal administrator command center on `admin.html`, showing real-time KPI counter cards, active driver rosters, and daily complaint management modals.
 
 [INSERT FIGURE HERE: Figure 6.6]
-*Figure 6.6: City-Wide Waste Monitoring Map & Monthly Compliance Tracking Report with Excel Export*
+*Figure 6.6: City-Wide Waste Monitoring Map & Monthly Compliance Tracking Report with Excel Export Views*
 
 ### Explanation of Figure 6.6:
 Figure 6.6 presents the administrator spatial monitoring map displaying city-wide complaint distributions, alongside the 30-day compliance report with one-click Excel CSV export.
 
 [INSERT FIGURE HERE: Figure 6.7]
-*Figure 6.7: Mobile Responsive Device View across Smartphone Viewport*
+*Figure 6.7: Mobile Responsive Device View across Smartphone Viewport Views*
 
 ### Explanation of Figure 6.7:
 Figure 6.7 demonstrates responsive layout adaptation on smartphone viewports (375×667), transitioning navigation into accessible bottom tab bars and touch-optimized controls.
@@ -276,7 +362,7 @@ Figure 6.7 demonstrates responsive layout adaptation on smartphone viewports (37
 The backend server (`backend/server.js`) is implemented using Express.js on Node.js. It encapsulates REST route handlers, controller logic, and algorithmic computation services:
 - **Express Route Handlers:** Handles routing for authentication (`/api/register`, `/api/login`), complaint lifecycle (`/api/complaints`, `/api/complaints/:id/resolve`), driver route operations (`/api/driver/route/today`, `/api/driver/route/lock`), and municipal analytics (`/api/admin/dashboard`).
 - **Haversine 1.0 km Proximity Engine:** Computes great-circle geodesic distances between driver collection points and active complaints using the spherical trigonometric formula:
-  $$d = 2R \arcsin\left(\sqrt{\sin^2\left(\frac{\Delta\phi}{2}\right) + \cos(\phi_1)\cos(\phi_2)\sin^2\left(\frac{\Delta\lambda}{2}\right)}\right)$$
+  $$d = 2R \cdot \arcsin\left(\sqrt{\sin^2\left(\frac{\Delta\phi}{2}\right) + \cos(\phi_1)\cos(\phi_2)\sin^2\left(\frac{\Delta\lambda}{2}\right)}\right)$$
   Complaints where $d \le 1.0\text{ km}$ enter the driver's active candidate queue; distant complaints remain in the general unassigned pool.
 - **Greedy TSP Route Optimization:** An internal Greedy Nearest-Neighbor heuristic iteratively selects the nearest unvisited waypoint in $O(N^2)$ time, generating an ordered stop sequence that is then projected onto real Mumbai road geometries via the Project-OSRM Driving API.
 

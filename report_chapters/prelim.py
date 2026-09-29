@@ -118,20 +118,20 @@ The platform establishes an automated complaint lifecycle (**Pending → Assigne
   - List of Tables
   - List of Abbreviations
 - **Chapter 1 — Problem Identification & Feasibility Study**
-  - 1.1 Real-World Problem
-  - 1.2 Justification & Scope
-  - 1.3 Stakeholders
-  - 1.4 Feasibility: Technical, Economic, Operational
+  - 1.1 Identification of a Real-World Problem
+  - 1.2 Problem Justification and Scope Definition
+  - 1.3 Stakeholder Identification
+  - 1.4 Feasibility Analysis
 - **Chapter 2 — Requirement Engineering**
-  - 2.1 Functional Requirements (FRs)
-  - 2.2 Non-Functional Requirements (NFRs)
-  - 2.3 Use-Case Analysis Across Actors
-  - 2.4 Prioritization (MoSCoW Framework)
+  - 2.1 Functional Requirements Specification
+  - 2.2 Non-Functional Requirements
+  - 2.3 Use Case Analysis and Actor Profiles
+  - 2.4 Requirement Prioritization – MoSCoW
   - 2.5 Constraints and Assumptions
 - **Chapter 3 — SDLC Planning**
   - 3.1 Selection of SDLC Model
   - 3.2 Work Breakdown Structure (WBS)
-  - 3.3 Timeline / Gantt Chart
+  - 3.3 Project Timeline / Gantt Chart
   - 3.4 Resource Planning
 - **Chapter 4 — System Modeling Using UML**
   - 4.1 Event Table
@@ -139,14 +139,15 @@ The platform establishes an automated complaint lifecycle (**Pending → Assigne
   - 4.3 Class Diagram
   - 4.4 Sequence Diagram
   - 4.5 Activity Diagram
-  - 4.6 ER Diagram
+  - 4.6 Entity-Relationship Diagram
   - 4.7 Deployment Diagram
 - **Chapter 5 — System Architecture Design**
-  - 5.1 Frontend Architecture — Prototype Only
-  - 5.2 Backend Architecture
-  - 5.3 Database Schema Design — Structure of Data
-  - 5.4 API Structure
-  - 5.5 Security Considerations
+  - 5.1 Overall System Architecture
+  - 5.2 Frontend Architecture and Prototype
+  - 5.3 Prototype–Architecture Mapping
+  - 5.4 Backend Architecture
+  - 5.5 Database Schema Design
+  - 5.6 Security Considerations
 - **Chapter 6 — Application Development**
   - 6.1 Frontend Implementation
   - 6.2 Backend Implementation
@@ -160,19 +161,22 @@ The platform establishes an automated complaint lifecycle (**Pending → Assigne
   - 7.4 Test Case Preparation
   - 7.5 Bug Tracking
 - **Chapter 8 — Deployment**
-  - 8.1 Cloud Deployment / Local Hosting
-  - 8.2 APK Build
+  - 8.1 Hosting / Deployment
+  - 8.2 Responsive or Mobile Deployment
   - 8.3 Server Configuration
   - 8.4 Version Control Using GitHub
 - **Chapter 9 — Performance & Security Testing**
-  - 9.1 Basic Load Testing
+  - 9.1 Load Testing
   - 9.2 Input Validation Checks
   - 9.3 Security Validation
 - **Chapter 10 — Result and Discussion**
-  - 10.1 Technical Report
-  - 10.2 User Manual
-  - 10.3 Screenshots
-  - 10.4 Source Code Documentation
+  - 10.1 Project Results
+  - 10.2 Objective vs Implementation
+  - 10.3 Actual Application Screenshots
+  - 10.4 User Manual
+  - 10.5 Source Code Documentation
+  - 10.6 Limitations and Future Scope
+  - 10.7 Conclusion
 
 ---
 
@@ -186,29 +190,29 @@ The platform establishes an automated complaint lifecycle (**Pending → Assigne
 - Figure 4.5: UrbanClean Activity Diagram — Complaint Processing, Routing, and Resolution Flow
 - Figure 4.6: Entity-Relationship Diagram of UrbanClean
 - Figure 4.7: UrbanClean Deployment Diagram
-- Figure 5.1: Prototype — Public Landing Page & Cleanliness Statistics
-- Figure 5.2: Prototype — Multi-Role Unified Authentication Portal
-- Figure 5.3: Prototype — Citizen Registration & Account Creation
-- Figure 5.4: Prototype — Citizen Waste Reporting & Incident Logging Form
-- Figure 5.5: Prototype — Interactive Geographic Location Selection & Map Canvas
-- Figure 5.6: Prototype — Citizen Real-Time Complaint Tracking & Lifecycle Dashboard
-- Figure 5.7: Prototype — Waste Collection Driver Duty Dashboard
-- Figure 5.8: Prototype — Driver TSP Route Optimization & Real-Road Navigation Map
-- Figure 5.9: Prototype — Proof-of-Cleanup Image Upload & Verification Interface
-- Figure 5.10: Prototype — Municipal Administrator Command Center & Analytics Dashboard
-- Figure 5.11: Prototype — City-Wide Waste Monitoring Map & GIS Filtering
-- Figure 5.12: Prototype — Municipal Monthly Compliance Tracking & Data Export Report
-- Figure 5.13: UrbanClean Backend Structure and Data Flow
+- Figure 5.1: UrbanClean Public Landing Page Prototype
+- Figure 5.2: UrbanClean Multi-Role Unified Authentication Portal Prototype
+- Figure 5.3: UrbanClean Citizen Registration Prototype
+- Figure 5.4: UrbanClean Citizen Waste Reporting Prototype
+- Figure 5.5: UrbanClean Interactive Location Selection and GPS Map Prototype
+- Figure 5.6: UrbanClean Citizen Complaint Tracking Prototype
+- Figure 5.7: UrbanClean Waste Collection Driver Dashboard Prototype
+- Figure 5.8: UrbanClean Driver TSP Route Optimization Prototype
+- Figure 5.9: UrbanClean Proof-of-Cleanup Upload Verification Prototype
+- Figure 5.10: UrbanClean Municipal Administrator Dashboard Prototype
+- Figure 5.11: UrbanClean City-Wide Waste Monitoring and GIS Map Prototype
+- Figure 5.12: UrbanClean Monthly Compliance Tracking and Data Export Prototype
+- Figure 5.13: UrbanClean Backend Structure and Data Flow Diagram
 - Figure 5.14: DB Browser for SQLite — accounts & complaints Tables
 - Figure 5.15: DB Browser for SQLite — driver_routes & notifications Tables
 - Figure 5.16: DB Browser for SQLite — drivers Fleet Roster Table
-- Figure 6.1: Public Landing Page, Multi-Role Login & Citizen Registration
-- Figure 6.2: Citizen Waste Reporting Interface & Interactive Map Pinning
-- Figure 6.3: GPS Geolocation Telemetry, Citizen Ticket Tracking & Driver Dashboard
-- Figure 6.4: Driver Optimized Route Map (5 Stops) & Proof-of-Cleanup Upload
-- Figure 6.5: Municipal Administrator Command Center, Active Drivers & Daily Complaints Modal
-- Figure 6.6: City-Wide Waste Monitoring Map & Monthly Compliance Tracking Report with Excel Export
-- Figure 6.7: Mobile Responsive Device View across Smartphone Viewport
+- Figure 6.1: Public Landing Page, Multi-Role Login & Citizen Registration Views
+- Figure 6.2: Citizen Waste Reporting Interface & Interactive Map Pinning Views
+- Figure 6.3: GPS Geolocation Telemetry, Citizen Ticket Tracking & Driver Dashboard Views
+- Figure 6.4: Driver Optimized Route Map (5 Stops) & Proof-of-Cleanup Upload Views
+- Figure 6.5: Municipal Administrator Command Center, Active Drivers & Daily Complaints Modal Views
+- Figure 6.6: City-Wide Waste Monitoring Map & Monthly Compliance Tracking Report with Excel Export Views
+- Figure 6.7: Mobile Responsive Device View across Smartphone Viewport Views
 - Figure 7.1: Unit Testing Suite Execution Output (unit_tests.js — S23)
 - Figure 7.2: REST API & Component Integration Verification (integration_tests.js — S24)
 - Figure 7.3: Dual Persistence (db.json <-> SQLite) Sync Verification (verify_db_sync.py — S25)
@@ -236,7 +240,7 @@ The platform establishes an automated complaint lifecycle (**Pending → Assigne
 - Table 2.4: Software Technology Stack Specifications
 - Table 3.1: Work Breakdown Structure (WBS)
 - Table 3.2: Project Milestone Schedule (Project Gantt Chart Sem-V 2026-27)
-- Table 5.1: Prototype–Architecture Tier Mapping
+- Table 5.1: Prototype–Architecture Mapping
 - Table 5.2: Data Dictionary — accounts Table
 - Table 5.3: Data Dictionary — complaints Table
 - Table 5.4: Data Dictionary — driver_routes Table

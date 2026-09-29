@@ -1,17 +1,21 @@
 # -*- coding: utf-8 -*-
 """
 Chapter 1 (Problem Identification & Feasibility Study) & Chapter 2 (Requirement Engineering)
-Restructured strictly to the required syllabus topics.
+Structured strictly according to the required academic format.
 """
 
-CH1_CH2_TEXT = """# CHAPTER 1 — PROBLEM IDENTIFICATION & FEASIBILITY STUDY
+CH1_CH2_TEXT = r"""# CHAPTER 1 — PROBLEM IDENTIFICATION & FEASIBILITY STUDY
 
 ## 1.1 Identification of a Real-World Problem
-Urban solid waste management constitutes one of the most critical civic responsibilities maintained by municipal corporations. Across rapidly urbanizing regions, exponential commercial expansion, population growth, and high density have led to unprecedented daily waste generation. In Indian metropolitan regions such as Mumbai (MCGM), Thane (TMC), and Kalyan-Dombivli (KDMC), waste collection operations consume millions of rupees annually in vehicular fuel, personnel hours, and equipment upkeep. 
+Urban solid waste management constitutes one of the most critical civic responsibilities maintained by municipal corporations and urban local bodies (ULBs). Across rapidly urbanizing metropolitan regions such as Mumbai (MCGM), Thane (TMC), and Kalyan-Dombivli (KDMC), exponential commercial expansion and high population density generate thousands of metric tons of municipal solid waste daily. Operational municipal expenditure on waste collection consumes millions of rupees annually in vehicular fuel, personnel work-hours, and equipment maintenance.
 
-Despite substantial budgetary allocations, traditional civic waste collection remains largely fragmented, static, and uncoordinated. Sanitation trucks operate along predetermined historical routes without prior knowledge of real-time dumpster overflows. Public bins overflow days before scheduled collection vehicles arrive, creating severe sanitary hazards, groundwater contamination risks, foul odors, and public discontent.
+### Nature and Classification of the Problem:
+The waste-management crisis addressed by **UrbanClean** is fundamentally a **Municipal and Social Civic Problem**:
+- **Municipal Operational Bottleneck:** Traditional waste management operates on static, historical collection routes without real-world telemetry or awareness of actual dumpster fill levels. Sanitation compactor trucks follow fixed weekly timetables, visiting half-empty bins while overflowing dumpsters in adjacent neighborhoods remain unserviced for days. This causes excessive diesel fuel waste, unnecessary vehicular wear, and severe labor misallocation.
+- **Social and Environmental Hazard:** Unattended waste heaps create immediate public health hazards, including groundwater leaching, foul odors, vector-borne disease proliferation (dengue, malaria, cholera), stray animal scavenging, and blocked municipal stormwater drains during heavy monsoon seasons.
+- **Civic Trust Deficit:** Citizens encounter significant friction when attempting to lodge civic grievances. Traditional helplines and paper-based ward registers are unresponsive, lack tracking transparency, and offer zero accountability, breeding public cynicism toward local governance bodies.
 
-Through analytical observation of municipal waste management operations, four critical structural bottlenecks were identified:
+Through comprehensive analysis of municipal solid waste management operations, four critical structural bottlenecks were identified:
 1. **Ambiguous Landmark Descriptions:** Citizens lodge complaints using vague physical landmarks (e.g., "near corner temple" or "behind general store"), leaving field drivers unable to pinpoint exact dumpster coordinates.
 2. **Civic Opacity ("Black Hole" Redressal):** Citizens have zero visibility into complaint resolution progress once a report is submitted, breeding distrust between the public and urban local bodies.
 3. **Redundant Fleet Mileage & Fuel Waste:** Sanitation trucks drive unoptimized, circuitous paths, idling in heavy urban traffic and burning excessive diesel fuel.
@@ -30,11 +34,23 @@ There is an urgent requirement for an integrated, multi-role web platform that c
 5. **Closed-Loop Resolution Verification:** A ticket cannot be closed until the driver captures and uploads an after-cleanup photograph of the cleared location.
 6. **Centralized Municipal Governance:** Real-time administrative command dashboards provide live KPI statistics, jurisdiction auto-locking, and downloadable 30-day compliance CSV exports.
 
-**Project Scope:**
-- **Target Institutions:** Designed for municipal corporations, local urban bodies (ULBs), smart city special purpose vehicles, and residential ward offices (e.g., MCGM Mumbai, KDMC Kalyan-Dombivli, TMC Thane).
-- **Core User Tiers:** Encompasses dedicated functional portals for Guests, Citizens, Collection Drivers, and City Administrators.
-- **Geographic Boundary:** Implemented and validated with location data centered on Mumbai, Thane, and Kalyan-Dombivli administrative zones.
-- **Platform Architecture:** Built as a responsive web application accessible across desktop, tablet, and smartphone web browsers without native app store installation requirements.
+### Scope of the System:
+To maintain rigorous engineering focus and deliver a robust solution within academic project boundaries, the system's operational scope is explicitly delineated:
+
+**What the System Covers (In Scope):**
+- **Multi-Role Web Application:** Dedicated, role-segregated portals for Guests, Citizens, Collection Drivers, and Municipal Administrators.
+- **Geospatial Reporting Canvas:** Interactive Leaflet.js map with OpenStreetMap cartography, draggable pin placement, and W3C device GPS auto-detection.
+- **Closed-Loop Photographic Audit Trail:** Mandatory citizen photo submission before ticket creation, and mandatory driver after-cleanup photo upload before ticket closure.
+- **Algorithmic Fleet Optimization:** Client-side and server-side Haversine geodesic distance filtering (1.0 km threshold) and Greedy TSP stop sequencing paired with OSRM driving network polylines.
+- **Shift Stability Protection:** Daily Route-Lock engine that snapshots active stops and queues late submissions into tomorrow's dispatch roster.
+- **Administrative Command Center:** Ward-locked municipal monitoring dashboards with real-time KPI counter cards and 30-day CSV compliance auditing exports.
+- **Dual-Layer Persistence:** Operational file-backed JSON document store (`db.json`) mirrored synchronously to an embedded SQLite relational database (`urban_clean.db`).
+
+**What the System Does NOT Cover (Out of Scope):**
+- **Hardware Bin Sensors:** Does not require ultrasonic physical IoT level sensors mounted on public dumpsters (eliminating hardware capital expenditure and battery maintenance overhead).
+- **Automated Computer Vision Classification:** Does not perform server-side deep learning AI image classification to verify waste composition.
+- **Native Mobile App Store Packaging:** Does not provide standalone compiled Android APK or iOS IPA application packages; operates exclusively as a mobile-responsive web application accessible via modern mobile browsers.
+- **Financial Gateway Integration:** Does not incorporate civic fine billing, waste taxation, or payment gateway processing.
 
 ## 1.3 Stakeholder Identification
 The platform serves four primary stakeholder groups documented across the project lifecycle:
@@ -124,14 +140,14 @@ The non-functional requirements govern the platform's operational qualities, per
 | **NFR-18** | Data Integrity | The system shall log status transition history with timestamps and actor IDs to guarantee complete auditability. |
 | **NFR-19** | Portability | The web application shall operate seamlessly on Windows 10/11, macOS 12+, and Ubuntu 20.04 LTS+ without environment-specific code paths. |
 
-## 2.3 Use-Case Analysis
+## 2.3 Use Case Analysis and Actor Profiles
 System privileges, functional access boundaries, and operational scopes are partitioned across four primary actors:
 1. **Guest (Unauthenticated Public):** Public civic observers accessing the platform via `index.html`. Privileges include viewing aggregate municipal cleanliness KPI counters (resolved issues, active complaints, registered citizen metrics), inspecting recent localized waste complaints, and viewing scheduled municipal collection routes without credentials.
 2. **Citizen (Civic Resident):** Registered community members authenticated via `login.html`. Capabilities include acquiring meter-precision W3C device coordinates or placing an interactive Leaflet map pin, selecting categorical waste types, attaching mandatory binary photographic evidence, submitting complaint tickets to `POST /api/complaints`, and tracking real-time status under an isolated 'My Reports' view.
 3. **Collection Driver (Municipal Field Operator):** Sanitation truck operators operating vehicle hardware. Authenticated via `login.html`, drivers toggle shift duty status (Active / Off-Duty), inspect assigned collection stops, filter nearby complaints within a 1.0 km geodesic radius, execute the Greedy TSP heuristic to calculate optimal stop sequences, project road polylines via OSRM, freeze shifts via the Daily Route-Lock Engine, and upload after-cleanup proof photos.
 4. **Municipal Administrator (Ward Supervisor):** Municipal executive personnel exercising jurisdictional governance. Authenticated with territorial locking (e.g., Kalyan, Bandra), administrators monitor real-time KPI command cards, inspect zone-wide Leaflet complaint distributions, manage driver duty rosters, override task assignments, and export comprehensive 30-day compliance audits formatted as CSV.
 
-## 2.4 Requirement Prioritization
+## 2.4 Requirement Prioritization – MoSCoW
 Requirements were prioritized using the industry-standard **MoSCoW** framework:
 - **Must Have (Essential Core):** Multi-role authentication (FR-01, FR-02, FR-03); Geotagged complaint reporting with mandatory photo proof (FR-07, FR-08, FR-11); 1.0 km Haversine proximity filter (FR-14); Greedy TSP + OSRM road route optimization (FR-16, FR-17); Daily Route-Lock system (FR-18); Closed-loop proof-of-resolution upload (FR-21); Admin command KPI dashboard (FR-24).
 - **Should Have (High Value):** Automated GPS coordinate capture (FR-10); Reverse geocoding via Nominatim (FR-10); Strict citizen data isolation (FR-13); 30-day compliance CSV export (FR-27); Driver shift duty toggle (FR-19).

@@ -143,7 +143,7 @@ Figure 4.5 models algorithmic decision paths:
 6. Driver clears waste site and uploads after-cleanup photograph.
 7. Decision Gate: Verifies proof photo acceptance; if valid, marks ticket 'Completed' and logs resolution timestamp.
 
-## 4.6 ER Diagram
+## 4.6 Entity-Relationship Diagram
 The Entity-Relationship (ER) Diagram models the conceptual and logical data architecture of UrbanClean, illustrating the primary persistent entities, their structural attributes, unique primary keys, referential foreign key constraints, and relational cardinalities. While the Class Diagram defines the object-oriented abstractions and behavioral methods of the runtime application tier, the ER Diagram establishes the concrete data modeling foundation governing the SQLite relational database and the mirrored JSON document store.
 
 [INSERT FIGURE HERE: Figure 4.6]
