@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: urbanclean
+    env: node
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: node backend/server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 18.20.0

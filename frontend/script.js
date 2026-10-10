@@ -40,6 +40,9 @@ const STATE = {
 
 // Node coordinate configurations
 const CITY_COORDINATES = {
+    'Dadar': { lat: 19.0259, lng: 72.8443, zoom: 15 },
+    'Badlapur': { lat: 19.1570, lng: 73.2387, zoom: 14 },
+    'Kulgaon-Badlapur': { lat: 19.1570, lng: 73.2387, zoom: 14 },
     'Bandra': { lat: 19.0544, lng: 72.8295, zoom: 14 },
     'Khar': { lat: 19.0682, lng: 72.8342, zoom: 14 },
     'Kurla': { lat: 19.0724, lng: 72.8791, zoom: 14 },
@@ -68,7 +71,7 @@ const MAHARASHTRA_LOCATIONS = {
     'Jalna': ['Jalna', 'Ambad', 'Bhokardan', 'Partur'],
     'Kolhapur': ['Kolhapur', 'Gadhinglaj', 'Ichalkaranji', 'Kagal', 'Murgud', 'Panhala'],
     'Latur': ['Latur', 'Ahmadpur', 'Ausa', 'Nilanga', 'Udgir'],
-    'Mumbai City': ['Mumbai', 'Bandra', 'Khar', 'Kurla', 'Dadar', 'Byculla', 'Colaba', 'Worli'],
+    'Mumbai City': ['Dadar', 'Mumbai', 'Bandra', 'Khar', 'Kurla', 'Byculla', 'Colaba', 'Worli'],
     'Mumbai Suburban': ['Andheri', 'Borivali', 'Goregaon', 'Jogeshwari', 'Malad', 'Mulund', 'Vile Parle'],
     'Nagpur': ['Nagpur', 'Hingna', 'Kamptee', 'Katol', 'Narkhed', 'Ramtek'],
     'Nanded': ['Nanded', 'Bhokar', 'Deglur', 'Kandhar', 'Kinwat', 'Loha'],
@@ -83,7 +86,7 @@ const MAHARASHTRA_LOCATIONS = {
     'Satara': ['Satara', 'Karad', 'Mahabaleshwar', 'Phaltan', 'Wai'],
     'Sindhudurg': ['Oros', 'Kankavli', 'Kudal', 'Malvan', 'Sawantwadi', 'Vengurla'],
     'Solapur': ['Solapur', 'Akkalkot', 'Barshi', 'Pandharpur', 'Sangola'],
-    'Thane': ['Thane', 'Bhiwandi', 'Kalyan', 'Mira-Bhayandar', 'Murbad', 'Ulhasnagar'],
+    'Thane': ['Kalyan', 'Badlapur', 'Kulgaon-Badlapur', 'Thane', 'Bhiwandi', 'Mira-Bhayandar', 'Murbad', 'Ulhasnagar'],
     'Wardha': ['Wardha', 'Arvi', 'Deoli', 'Hinganghat', 'Pulgaon'],
     'Washim': ['Washim', 'Karanja', 'Mangrulpir', 'Risod'],
     'Yavatmal': ['Yavatmal', 'Darwha', 'Digras', 'Pusad', 'Wani']
@@ -127,18 +130,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ----------------------------------------------------
 
 async function loadAppState() {
-    // 1. Session user
-    const savedUser = localStorage.getItem('urban_clean_user');
-    if (savedUser) {
-        STATE.user = JSON.parse(savedUser);
+    // 1. Session user with role-isolated multi-tab support
+    const pageRole = CURRENT_PAGE === 'admin.html' ? 'admin' : (CURRENT_PAGE === 'driver.html' ? 'driver' : (CURRENT_PAGE === 'citizen.html' ? 'citizen' : null));
+    let rawUser = null;
+    if (pageRole) {
+        rawUser = sessionStorage.getItem(`urban_clean_user_${pageRole}`) || localStorage.getItem(`urban_clean_user_${pageRole}`);
+    }
+    if (!rawUser) {
+        rawUser = sessionStorage.getItem('urban_clean_user') || localStorage.getItem('urban_clean_user');
+    }
+    if (rawUser) {
+        try {
+            const parsed = JSON.parse(rawUser);
+            if (!pageRole || parsed.role === pageRole) {
+                STATE.user = parsed;
+            }
+        } catch (e) {
+            console.error('Invalid user session', e);
+        }
     }
 
     // 2. Active location — if admin user has pre-assigned city, lock to it
     const savedLoc = localStorage.getItem('urban_clean_location');
     if (savedLoc) {
-        STATE.location = JSON.parse(savedLoc);
+        try { STATE.location = JSON.parse(savedLoc); } catch(e){}
     }
-    // If logged-in user has location fields (e.g. Kalyan Admin), override location
+    // If logged-in user has location fields (e.g. Kalyan Admin, Dadar Admin, Badlapur Admin), override location
     if (STATE.user && STATE.user.state && STATE.user.district && STATE.user.city) {
         STATE.location.state = STATE.user.state;
         STATE.location.district = STATE.user.district;
@@ -176,7 +193,9 @@ async function fetchComplaints() {
 
 async function fetchDrivers() {
     try {
-        const res = await fetch('/api/drivers');
+        const cityParam = (STATE.location && STATE.location.city) ? encodeURIComponent(STATE.location.city) : '';
+        const url = (STATE.user && STATE.user.role === 'admin' && cityParam) ? `/api/drivers?city=${cityParam}` : '/api/drivers';
+        const res = await fetch(url);
         if (res.ok) {
             STATE.drivers = await res.json();
         } else {
@@ -341,10 +360,13 @@ function setupLocationSelectors() {
     });
 }
 
-function applyLocationChange() {
+async function applyLocationChange() {
     saveLocationToStorage();
     showToast(`Location changed to: ${STATE.location.city}, ${STATE.location.district}`, 'info');
+    await fetchComplaints();
+    await fetchDrivers();
     updateMapLocationViewports();
+    drawAllMapMarkers();
 
     if (CURRENT_PAGE === 'index.html' || CURRENT_PAGE === '') {
         renderDashboardLists();
@@ -353,6 +375,8 @@ function applyLocationChange() {
         renderDriverPortal();
     } else if (CURRENT_PAGE === 'admin.html') {
         renderAdminPortal();
+    } else if (CURRENT_PAGE === 'citizen.html') {
+        renderCitizenTrackList();
     }
 }
 
@@ -364,8 +388,25 @@ function getLocationCoordinates() {
         })();
 }
 
-function logoutUser() {
+async function logoutUser() {
+    const currentUser = STATE.user;
+    if (currentUser) {
+        if (currentUser.role === 'driver') {
+            try {
+                await fetch('/api/driver/logout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ driverId: currentUser.id })
+                });
+            } catch (e) {
+                console.error('Failed to notify backend of driver logout', e);
+            }
+        }
+        localStorage.removeItem(`urban_clean_user_${currentUser.role}`);
+        sessionStorage.removeItem(`urban_clean_user_${currentUser.role}`);
+    }
     localStorage.removeItem('urban_clean_user');
+    sessionStorage.removeItem('urban_clean_user');
     showToast('Logged out successfully.', 'info');
     setTimeout(() => {
         window.location.href = 'index.html';
@@ -478,6 +519,9 @@ function initLoginPage() {
             if (!res.ok) throw new Error(data.error || 'Unable to complete your request.');
 
             localStorage.setItem('urban_clean_user', JSON.stringify(data.user));
+            localStorage.setItem(`urban_clean_user_${data.user.role}`, JSON.stringify(data.user));
+            sessionStorage.setItem('urban_clean_user', JSON.stringify(data.user));
+            sessionStorage.setItem(`urban_clean_user_${data.user.role}`, JSON.stringify(data.user));
             showToast(`${mode === 'signup' ? 'Account created' : 'Welcome back'}, ${data.user.name}! Redirecting...`, 'success');
             const redirect = new URLSearchParams(window.location.search).get('redirect');
             setTimeout(() => {
@@ -910,10 +954,22 @@ function initAdminPage() {
         drawAllMapMarkers();
     }
 
-    // Wire up: click "Reported Today" box → open popup modal
+    // Wire up: click stat boxes → open popup modal
     const todayBox = document.getElementById('admin-stat-total-today-box');
     if (todayBox) {
-        todayBox.addEventListener('click', openTodayComplaintsModal);
+        todayBox.addEventListener('click', () => openAdminComplaintsModal('today'));
+    }
+    const pendingBox = document.getElementById('admin-stat-pending-box');
+    if (pendingBox) {
+        pendingBox.addEventListener('click', () => openAdminComplaintsModal('pending'));
+    }
+    const progressBox = document.getElementById('admin-stat-progress-box');
+    if (progressBox) {
+        progressBox.addEventListener('click', () => openAdminComplaintsModal('progress'));
+    }
+    const solvedBox = document.getElementById('admin-stat-solved-today-box');
+    if (solvedBox) {
+        solvedBox.addEventListener('click', () => openAdminComplaintsModal('solved'));
     }
 
     // Wire up: close modal button
@@ -1313,28 +1369,49 @@ function renderDriverPortal() {
 }
 
 async function renderAdminPortal() {
-    try {
-        const statsRes = await fetch('/api/admin/stats');
-        if (statsRes.ok) {
-            const stats = await statsRes.json();
-            const totToday = document.getElementById('admin-stat-total-today');
-            const pendingVal = document.getElementById('admin-stat-pending');
-            const progressVal = document.getElementById('admin-stat-progress');
-            const solvedVal = document.getElementById('admin-stat-solved-today');
+    // 1. Calculate and sync stats with current complaints
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayDateStr = new Date().toISOString().split('T')[0];
 
-            if (totToday) totToday.innerText = stats.total;
-            if (pendingVal) pendingVal.innerText = stats.open + stats.pending;
-            if (progressVal) progressVal.innerText = stats.progress;
-            if (solvedVal) solvedVal.innerText = stats.completed;
-        }
-    } catch (e) {
-        console.error('Error fetching admin statistics');
-    }
+    const isToday = (c) => {
+        if (c.timestamp && c.timestamp >= todayStart.getTime()) return true;
+        if (c.createdAt && c.createdAt.startsWith(todayDateStr)) return true;
+        return false;
+    };
+
+    const isSolvedToday = (c) => {
+        if (c.status !== 'Completed') return false;
+        if (c.resolvedTimestamp && c.resolvedTimestamp >= todayStart.getTime()) return true;
+        if (c.resolvedAt && c.resolvedAt.startsWith(todayDateStr)) return true;
+        if (isToday(c)) return true;
+        return false;
+    };
+
+    const relevant = STATE.complaints || [];
+    const countToday = relevant.filter(isToday).length;
+    const countPending = relevant.filter(c => c.status === 'Open' || c.status === 'Pending').length;
+    const countProgress = relevant.filter(c => c.status === 'In Progress').length;
+    const countSolvedToday = relevant.filter(isSolvedToday).length;
+
+    const totToday = document.getElementById('admin-stat-total-today');
+    const pendingVal = document.getElementById('admin-stat-pending');
+    const progressVal = document.getElementById('admin-stat-progress');
+    const solvedVal = document.getElementById('admin-stat-solved-today');
+
+    if (totToday) totToday.innerText = countToday;
+    if (pendingVal) pendingVal.innerText = countPending;
+    if (progressVal) progressVal.innerText = countProgress;
+    if (solvedVal) solvedVal.innerText = countSolvedToday;
+
+    // 2. Fetch fresh driver status
+    await fetchDrivers();
 
     const list = document.getElementById('admin-drivers-list');
     if (list) {
         list.innerHTML = STATE.drivers.map(d => {
             const isSelected = STATE.selectedAdminDriver && STATE.selectedAdminDriver.id === d.id;
+            const isOnDuty = d.status === 'Active' || d.status === 'On-Duty';
             return `
                 <div class="admin-driver-item ${isSelected ? 'selected-driver' : ''}" onclick="selectAdminDriver('${d.id}')">
                     <div class="admin-drv-avatar">
@@ -1344,28 +1421,77 @@ async function renderAdminPortal() {
                         <h4>${d.name}</h4>
                         <p>${d.vehicle}</p>
                     </div>
-                    <span class="badge ${d.status === 'Active' ? 'badge-success' : 'badge-danger'}">${d.status}</span>
+                    <span class="badge ${isOnDuty ? 'badge-success' : 'badge-secondary'}" style="${!isOnDuty ? 'background: rgba(148, 163, 184, 0.2); color: #64748b; border: 1px solid #cbd5e1;' : ''}">
+                        ${isOnDuty ? 'ON-DUTY' : 'OFF-DUTY'}
+                    </span>
                 </div>
             `;
         }).join('');
     }
+
+    const activeCount = STATE.drivers.filter(d => d.status === 'Active' || d.status === 'On-Duty').length;
+    const activeBadge = document.getElementById('admin-drivers-count') || document.getElementById('active-drivers-badge');
+    if (activeBadge) {
+        activeBadge.innerText = `${activeCount} Active`;
+    }
 }
 
-// ---- Today's Complaints Popup ----
-function openTodayComplaintsModal() {
+// ---- Admin Complaints Popup Modal (Filtered by Stat Clicked) ----
+function openAdminComplaintsModal(type = 'today') {
     const modal = document.getElementById('today-complaints-modal');
     const tbody = document.getElementById('today-complaints-tbody');
+    const titleEl = document.getElementById('modal-complaints-title');
+    const subtitleEl = document.getElementById('modal-complaints-subtitle');
     if (!modal || !tbody) return;
 
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
-    const todayComplaints = STATE.complaints.filter(c => c.timestamp >= todayStart.getTime());
+    const todayDateStr = new Date().toISOString().split('T')[0];
 
-    if (todayComplaints.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 32px; color: var(--text-muted);">No complaints reported today.</td></tr>`;
+    const isToday = (c) => {
+        if (c.timestamp && c.timestamp >= todayStart.getTime()) return true;
+        if (c.createdAt && c.createdAt.startsWith(todayDateStr)) return true;
+        return false;
+    };
+
+    const isSolvedToday = (c) => {
+        if (c.status !== 'Completed') return false;
+        if (c.resolvedTimestamp && c.resolvedTimestamp >= todayStart.getTime()) return true;
+        if (c.resolvedAt && c.resolvedAt.startsWith(todayDateStr)) return true;
+        if (isToday(c)) return true;
+        return false;
+    };
+
+    let filtered = [];
+    let emptyMsg = '';
+
+    if (type === 'today') {
+        if (titleEl) titleEl.innerText = "Complaints Reported Today";
+        if (subtitleEl) subtitleEl.innerText = "Detailed list of all garbage issues submitted today in your area.";
+        filtered = (STATE.complaints || []).filter(isToday);
+        emptyMsg = "No complaints reported today.";
+    } else if (type === 'pending') {
+        if (titleEl) titleEl.innerText = "Pending Collector Complaints";
+        if (subtitleEl) subtitleEl.innerText = "Complaints awaiting driver assignment or route pickup.";
+        filtered = (STATE.complaints || []).filter(c => c.status === 'Open' || c.status === 'Pending');
+        emptyMsg = "No pending complaints waiting for collection.";
+    } else if (type === 'progress') {
+        if (titleEl) titleEl.innerText = "Complaints In Progress";
+        if (subtitleEl) subtitleEl.innerText = "Complaints currently being collected and cleared by drivers on route.";
+        filtered = (STATE.complaints || []).filter(c => c.status === 'In Progress');
+        emptyMsg = "No complaints currently in progress.";
+    } else if (type === 'solved') {
+        if (titleEl) titleEl.innerText = "Complaints Solved Today";
+        if (subtitleEl) subtitleEl.innerText = "Complaints cleared and verified with proof of resolution today.";
+        filtered = (STATE.complaints || []).filter(isSolvedToday);
+        emptyMsg = "No complaints solved today.";
+    }
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 32px; color: var(--text-muted);"><i class="fa-solid fa-circle-info" style="margin-right: 8px;"></i>${emptyMsg}</td></tr>`;
     } else {
         const badgeMap = { 'Open': 'badge-danger', 'Pending': 'badge-warning', 'In Progress': 'badge-primary', 'Completed': 'badge-success' };
-        tbody.innerHTML = todayComplaints.map(c => `
+        tbody.innerHTML = filtered.map(c => `
             <tr>
                 <td><span class="track-id">${c.id}</span></td>
                 <td>${c.category || 'General'}</td>
@@ -1376,6 +1502,10 @@ function openTodayComplaintsModal() {
         `).join('');
     }
     modal.classList.add('active');
+}
+
+function openTodayComplaintsModal() {
+    openAdminComplaintsModal('today');
 }
 
 function closeTodayComplaintsModal() {
@@ -1550,6 +1680,14 @@ async function reverseGeocodeLocation(lat, lng) {
             const data = await res.json();
             if (data && data.display_name) {
                 addrInput.value = data.display_name;
+                const dName = data.display_name.toLowerCase();
+                if (dName.includes('dadar') || dName.includes('ruparel') || dName.includes('matunga')) {
+                    syncCitySelection('Mumbai City', 'Dadar');
+                } else if (dName.includes('badlapur')) {
+                    syncCitySelection('Thane', 'Badlapur');
+                } else if (dName.includes('kalyan')) {
+                    syncCitySelection('Thane', 'Kalyan');
+                }
                 return;
             }
         }
@@ -1558,6 +1696,19 @@ async function reverseGeocodeLocation(lat, lng) {
     }
     // Fallback format
     addrInput.value = `${STATE.location.city || 'Location'} (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+}
+
+function syncCitySelection(district, city) {
+    STATE.location.district = district;
+    STATE.location.city = city;
+    const dSelect = document.getElementById('district-select');
+    const cSelect = document.getElementById('city-select');
+    if (dSelect) dSelect.value = district;
+    if (cSelect && MAHARASHTRA_LOCATIONS[district]) {
+        cSelect.innerHTML = MAHARASHTRA_LOCATIONS[district].map(c => `<option value="${c}">${c}</option>`).join('');
+        cSelect.value = city;
+    }
+    saveLocationToStorage();
 }
 
 function autoDetectGPS() {
@@ -1579,6 +1730,15 @@ function autoDetectGPS() {
             if (latInput) latInput.value = lat.toFixed(6);
             if (lngInput) lngInput.value = lng.toFixed(6);
             if (statusSpan) statusSpan.innerHTML = `<span style="color: var(--primary-green); font-weight: bold;"><i class="fa-solid fa-circle-check"></i> GPS Location Acquired</span>`;
+
+            // If coordinates match Ruparel College / Dadar area (19.00 - 19.05, 72.82 - 72.86)
+            if (lat >= 19.00 && lat <= 19.06 && lng >= 72.82 && lng <= 72.86) {
+                syncCitySelection('Mumbai City', 'Dadar');
+            } else if (lat >= 19.14 && lat <= 19.18 && lng >= 73.22 && lng <= 73.26) {
+                syncCitySelection('Thane', 'Badlapur');
+            } else if (lat >= 19.22 && lat <= 19.26 && lng >= 73.11 && lng <= 73.16) {
+                syncCitySelection('Thane', 'Kalyan');
+            }
 
             reverseGeocodeLocation(lat, lng);
 
@@ -1982,4 +2142,5 @@ window.getDriverId = getDriverId;
 window.lockTodayDriverRoute = lockTodayDriverRoute;
 window.loadTodayDriverRoute = loadTodayDriverRoute;
 window.loadTomorrowQueue = loadTomorrowQueue;
+window.openAdminComplaintsModal = openAdminComplaintsModal;
 

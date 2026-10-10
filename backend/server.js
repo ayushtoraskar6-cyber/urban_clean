@@ -178,7 +178,42 @@ app.post('/api/login', (req, res) => {
         return res.status(401).json({ error: 'Incorrect email or password for this account type.' });
     }
 
+    // When a driver logs in, automatically set their status to On-Duty in db.drivers
+    if (account.role === 'driver') {
+        const driver = db.drivers.find(d => d.id === account.id || d.name.toLowerCase() === account.name.toLowerCase());
+        if (driver) {
+            driver.status = 'On-Duty';
+            writeDB(db);
+        }
+    }
+
     res.json({ success: true, user: { role: account.role, name: account.name, email: account.email, id: account.id, vehicle: account.vehicle, state: account.state || '', district: account.district || '', city: account.city || '' } });
+});
+
+// Driver Logout - automatically set status to Off-Duty
+app.post('/api/driver/logout', (req, res) => {
+    const { driverId } = req.body;
+    if (!driverId) return res.status(400).json({ error: 'driverId is required.' });
+
+    const db = readDB();
+    const driver = db.drivers.find(d => d.id === driverId || (d.name && driverId && d.id.toLowerCase() === driverId.toLowerCase()));
+    if (driver) {
+        driver.status = 'Off-Duty';
+        writeDB(db);
+    }
+    res.json({ success: true, status: 'Off-Duty' });
+});
+
+// Admin Driver Status update endpoint
+app.patch('/api/drivers/:id/status', (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    const db = readDB();
+    const driver = db.drivers.find(d => d.id === id);
+    if (!driver) return res.status(404).json({ error: 'Driver not found.' });
+    driver.status = status;
+    writeDB(db);
+    res.json(driver);
 });
 
 // 2. Register citizen and driver accounts. Administrators are provisioned by
@@ -582,6 +617,8 @@ app.put('/api/complaints/:id/resolve', upload.single('photo'), (req, res) => {
         }
 
         target.status = 'Completed';
+        target.resolvedAt = new Date().toISOString();
+        target.resolvedTimestamp = Date.now();
         target.photo = `/uploads/${req.file.filename}`; // Replace with clean site verification photo
         
         writeDB(db);
@@ -688,14 +725,46 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 // 6. Admin Panel Statistics Compilation
 app.get('/api/admin/stats', (req, res) => {
     const db = readDB();
-    const complaints = db.complaints;
+    let complaints = db.complaints || [];
+    const city = req.query.city;
+    if (city) {
+        complaints = complaints.filter(c => c.city && c.city.toLowerCase() === city.toLowerCase());
+    }
+
+    const todayDateStr = getTodayDateStr();
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const isToday = (c) => {
+        if (c.timestamp && c.timestamp >= todayStart.getTime()) return true;
+        if (c.createdAt && c.createdAt.startsWith(todayDateStr)) return true;
+        return false;
+    };
+
+    const isSolvedToday = (c) => {
+        if (c.status !== 'Completed') return false;
+        if (c.resolvedTimestamp && c.resolvedTimestamp >= todayStart.getTime()) return true;
+        if (c.resolvedAt && c.resolvedAt.startsWith(todayDateStr)) return true;
+        if (isToday(c)) return true;
+        return false;
+    };
+
+    const reportedTodayCount = complaints.filter(isToday).length;
+    const pendingCount = complaints.filter(c => c.status === 'Open' || c.status === 'Pending').length;
+    const progressCount = complaints.filter(c => c.status === 'In Progress').length;
+    const solvedTodayCount = complaints.filter(isSolvedToday).length;
+    const activeDriversCount = (db.drivers || []).filter(d => d.status === 'Active' || d.status === 'On-Duty').length;
 
     const stats = {
         total: complaints.length,
+        reportedToday: reportedTodayCount,
         open: complaints.filter(c => c.status === 'Open').length,
         pending: complaints.filter(c => c.status === 'Pending').length,
-        progress: complaints.filter(c => c.status === 'In Progress').length,
+        pendingTotal: pendingCount,
+        progress: progressCount,
         completed: complaints.filter(c => c.status === 'Completed').length,
+        solvedToday: solvedTodayCount,
+        activeDrivers: activeDriversCount,
         byCity: {}
     };
 
@@ -714,10 +783,15 @@ app.get('/api/admin/stats', (req, res) => {
     res.json(stats);
 });
 
-// 7. Get On Duty Drivers list
+// 7. Get On Duty Drivers list (optionally filtered by city jurisdiction)
 app.get('/api/drivers', (req, res) => {
     const db = readDB();
-    res.json(db.drivers);
+    let drivers = db.drivers || [];
+    const city = req.query.city;
+    if (city && city.toLowerCase() !== 'all') {
+        drivers = drivers.filter(d => !d.city || d.city.toLowerCase() === city.toLowerCase());
+    }
+    res.json(drivers);
 });
 
 // Fallback: Redirect all other requests to Landing Page

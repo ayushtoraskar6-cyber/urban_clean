@@ -107,31 +107,31 @@
 
                     <!-- Admin Statistics Summary -->
                     <div class="admin-stats-row">
-                        <div class="admin-stat-box" id="admin-stat-total-today-box" style="cursor: pointer;">
+                        <div class="admin-stat-box" id="admin-stat-total-today-box" style="cursor: pointer;" title="Click to view complaints reported today">
                             <div class="admin-stat-icon red-stat"><i class="fa-solid fa-triangle-exclamation"></i></div>
                             <div class="admin-stat-info">
-                                <h3 id="admin-stat-total-today">24</h3>
+                                <h3 id="admin-stat-total-today">0</h3>
                                 <p>Reported Today</p>
                             </div>
                         </div>
-                        <div class="admin-stat-box">
+                        <div class="admin-stat-box" id="admin-stat-pending-box" style="cursor: pointer;" title="Click to view pending collector complaints">
                             <div class="admin-stat-icon orange-stat"><i class="fa-solid fa-spinner"></i></div>
                             <div class="admin-stat-info">
-                                <h3 id="admin-stat-pending">8</h3>
+                                <h3 id="admin-stat-pending">0</h3>
                                 <p>Pending Collector</p>
                             </div>
                         </div>
-                        <div class="admin-stat-box">
+                        <div class="admin-stat-box" id="admin-stat-progress-box" style="cursor: pointer;" title="Click to view complaints currently in progress">
                             <div class="admin-stat-icon blue-stat"><i class="fa-solid fa-route"></i></div>
                             <div class="admin-stat-info">
-                                <h3 id="admin-stat-progress">6</h3>
+                                <h3 id="admin-stat-progress">0</h3>
                                 <p>Currently In Progress</p>
                             </div>
                         </div>
-                        <div class="admin-stat-box">
+                        <div class="admin-stat-box" id="admin-stat-solved-today-box" style="cursor: pointer;" title="Click to view complaints solved today">
                             <div class="admin-stat-icon green-stat"><i class="fa-solid fa-circle-check"></i></div>
                             <div class="admin-stat-info">
-                                <h3 id="admin-stat-solved-today">10</h3>
+                                <h3 id="admin-stat-solved-today">0</h3>
                                 <p>Solved Today</p>
                             </div>
                         </div>
@@ -144,7 +144,7 @@
                             <div class="card admin-list-card">
                                 <div class="card-header">
                                     <h3>On Duty Drivers</h3>
-                                    <span class="badge badge-success" id="admin-drivers-count">3 Active</span>
+                                    <span class="badge badge-success" id="admin-drivers-count">0 Active</span>
                                 </div>
                                 <div class="drivers-on-duty-list" id="admin-drivers-list">
                                     <!-- Dynamic drivers list -->
@@ -221,13 +221,13 @@
         <span class="toast-msg">Hello World</span>
     </div>
 
-    <!-- Modal for Today's Complaints -->
+    <!-- Modal for Complaints Filtering -->
     <div class="modal-overlay" id="today-complaints-modal">
         <div class="modal-card" style="max-width: 800px;">
             <button class="modal-close-btn" id="btn-close-today-modal">&times;</button>
             <div class="modal-header">
-                <h2>Complaints Reported Today</h2>
-                <p>Detailed list of all garbage issues submitted today in your area.</p>
+                <h2 id="modal-complaints-title">Complaints Reported Today</h2>
+                <p id="modal-complaints-subtitle">Detailed list of all garbage issues submitted today in your area.</p>
             </div>
             <div class="modal-body" style="padding-top: 10px;">
                 <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">

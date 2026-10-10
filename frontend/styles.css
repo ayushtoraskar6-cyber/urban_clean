@@ -1343,6 +1343,14 @@ body {
     gap: 16px;
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-stat-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    border-color: var(--primary);
 }
 
 .admin-stat-icon {
