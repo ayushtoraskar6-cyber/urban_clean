@@ -2,6 +2,12 @@
 
 A smart urban cleanliness and waste-management web application built for the BSc Computer Science final project at D. G. Ruparel College of Arts, Science & Commerce, Mumbai.
 
+🌐 **Live Deployed Application:** [https://urban-clean-mp3b.onrender.com/](https://urban-clean-mp3b.onrender.com/)
+
+[![Live Deployment](https://img.shields.io/badge/Render-Live%20Demo-2ea44f?logo=render&logoColor=white)](https://urban-clean-mp3b.onrender.com/)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
+[![Status](https://img.shields.io/badge/Deployment-Online-brightgreen.svg)](https://urban-clean-mp3b.onrender.com/)
+
 ---
 
 ## About
@@ -92,13 +98,16 @@ Open your browser at: `http://localhost:3000`
 
 ## Demo Accounts
 
-These credentials are shown on the login page for demonstration purposes:
-
-| Role | Email | Password |
-|---|---|---|
-| Citizen | ayush@urbanclean.org | Citizen@123 |
-| Driver | ramesh@urbanclean.org | Driver@123 |
-| Admin | admin@urbanclean.org | Admin@123 |
+| Role | Jurisdiction / Area | Email | Password |
+|---|---|---|---|
+| **Citizen** | Public Reporter | `ayush@urbanclean.org` | `Citizen@123` |
+| **Driver** | Dadar / Mumbai City | `ramesh@urbanclean.org` | `Driver@123` |
+| **Driver** | Kalyan | `amit@urbanclean.org` | `Driver@123` |
+| **Driver** | Badlapur | `sunil@urbanclean.org` | `Driver@123` |
+| **BMC Mumbai Admin** | Dadar Ward (Ruparel College) | `bmc.admin@urbanclean.org` | `Admin@123` |
+| **Badlapur Municipal Admin** | Kulgaon-Badlapur (KBMC) | `badlapur.admin@urbanclean.org` | `Admin@123` |
+| **Kalyan Municipal Admin** | Kalyan | `kalyan.admin@urbanclean.org` | `Admin@123` |
+| **General Admin** | All Municipalities | `admin@urbanclean.org` | `Admin@123` |
 
 ---
 

@@ -2,6 +2,7 @@
   "name": "urbanclean",
   "version": "1.0.0",
   "description": "UrbanClean - Geospatial Smart City Waste Management & Route Optimization System",
+  "homepage": "https://urban-clean-mp3b.onrender.com/",
   "type": "module",
   "main": "backend/server.js",
   "scripts": {
