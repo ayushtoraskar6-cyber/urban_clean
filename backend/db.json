@@ -238,6 +238,19 @@
         "salt": "72c6bf7cc13b257786a3b35123d9a869",
         "passwordHash": "34545fd4e609d2d3056510cea645ccfd8247a4d6509f2a66cc2908948115be4aa5d8f794f85d11ab4af52740cbe65541d287d8ef846816b316e184c91c7be768",
         "createdAt": "2026-09-11T07:05:16.409Z"
+      },
+      {
+        "id": "CIT-788501",
+        "name": "Shreedhar",
+        "email": "shreedhar@urbanclean.org",
+        "role": "citizen",
+        "vehicle": "",
+        "state": "Maharashtra",
+        "district": "Thane",
+        "city": "Badlapur",
+        "salt": "24a083e223a5f5e01babb7bd58471944",
+        "passwordHash": "39d3eda6d0092d056260fe586f4cead79a987f6354a24fdeeb927f184400064337483ccdb0310d396ceccf032b93681217a52fa4f44671502735bff7042727f2",
+        "createdAt": "2026-10-11T13:50:00.000Z"
       }
     ],
     "drivers": [

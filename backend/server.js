@@ -137,6 +137,23 @@ function ensureAccountStore(db) {
             db.accounts.admins = admins;
             writeDB(db);
         }
+        // Ensure Shreedhar citizen account exists
+        const citizens = db.accounts.citizens || [];
+        const shreedharExists = citizens.find(c => c.id === 'CIT-788501' || c.name.toLowerCase() === 'shreedhar');
+        if (!shreedharExists) {
+            citizens.push(createAccount({
+                id: 'CIT-788501',
+                name: 'Shreedhar',
+                email: 'shreedhar@urbanclean.org',
+                password: 'Citizen@123',
+                role: 'citizen',
+                state: 'Maharashtra',
+                district: 'Thane',
+                city: 'Badlapur'
+            }));
+            db.accounts.citizens = citizens;
+            writeDB(db);
+        }
         return db.accounts;
     }
 
