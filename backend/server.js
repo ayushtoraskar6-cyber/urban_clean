@@ -82,8 +82,12 @@ function readDB() {
 function writeDB(data) {
     try {
         fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
-        // Auto-sync SQLite database urban_clean.db in real-time
-        exec(`python "${path.join(__dirname, 'sync_sqlite.py')}"`, (err) => {
+        // Auto-sync SQLite database urban_clean.db in real-time (cross-platform Linux/Windows)
+        const scriptPath = path.join(__dirname, 'sync_sqlite.py');
+        const cmd = process.platform === 'win32'
+            ? `python "${scriptPath}"`
+            : `python3 "${scriptPath}" || python "${scriptPath}"`;
+        exec(cmd, (err) => {
             if (err) console.warn('[SQLite Auto-Sync Notice]', err.message);
         });
     } catch (err) {
@@ -792,6 +796,27 @@ app.get('/api/drivers', (req, res) => {
         drivers = drivers.filter(d => !d.city || d.city.toLowerCase() === city.toLowerCase());
     }
     res.json(drivers);
+});
+
+// Database Sync & Export Endpoints
+app.get('/api/database/dump', (req, res) => {
+    const db = readDB();
+    res.json(db);
+});
+
+app.get('/api/database/download', (req, res) => {
+    const scriptPath = path.join(__dirname, 'sync_sqlite.py');
+    const cmd = process.platform === 'win32'
+        ? `python "${scriptPath}"`
+        : `python3 "${scriptPath}" || python "${scriptPath}"`;
+    exec(cmd, () => {
+        const sqliteFile = path.join(__dirname, 'urban_clean.db');
+        if (fs.existsSync(sqliteFile)) {
+            res.download(sqliteFile, 'urban_clean.db');
+        } else {
+            res.status(404).json({ error: 'SQLite database file not found.' });
+        }
+    });
 });
 
 // Fallback: Redirect all other requests to Landing Page
