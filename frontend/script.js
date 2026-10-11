@@ -1314,6 +1314,11 @@ function renderCitizenTrackList() {
 }
 
 function renderDriverPortal() {
+    const nameEl = document.getElementById('driver-name-display');
+    if (nameEl) {
+        nameEl.innerText = (STATE.user && STATE.user.name) ? STATE.user.name : 'Driver Operator';
+    }
+
     const stopsContainer = document.getElementById('driver-stops-queue');
     const badge = document.getElementById('driver-queue-count');
     if (!stopsContainer) return;
