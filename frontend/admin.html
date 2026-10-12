@@ -189,14 +189,9 @@
                                 <h3>Monthly Waste Tracking Report</h3>
                                 <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">View the past 30 days of data and download the spreadsheet.</p>
                             </div>
-                            <div style="display: flex; gap: 8px;">
-                                <a href="/api/database/download" class="btn btn-secondary" id="btn-download-sqlite" download="urban_clean.db" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                                    <i class="fa-solid fa-database"></i> Download SQLite (.db)
-                                </a>
-                                <button class="btn btn-primary" id="btn-export-excel">
-                                    <i class="fa-solid fa-file-excel"></i> Export to Excel
-                                </button>
-                            </div>
+                            <button class="btn btn-primary" id="btn-export-excel">
+                                <i class="fa-solid fa-file-excel"></i> Export to Excel
+                            </button>
                         </div>
                         <div class="table-responsive" style="margin-top: 16px; max-height: 400px; overflow-y: auto;">
                             <table class="tracking-table" id="monthly-report-table">
