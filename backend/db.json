@@ -100,6 +100,31 @@
       "photo": "/uploads/photo-1791727333599-961209244.webp",
       "resolvedAt": "2026-10-11T14:02:13.831Z",
       "resolvedTimestamp": 1791727333831
+    },
+    {
+      "id": "COMP-975",
+      "userId": "CIT-633534",
+      "category": "Garbage Overflow",
+      "title": "Garbage Overflow reported near area",
+      "description": "front gate of ruparel college",
+      "lat": 19.026947,
+      "lng": 72.843454,
+      "latitude": 19.026947,
+      "longitude": 72.843454,
+      "address": "Yashwant Natya Mandir, 122-A, J K Sawant Marg, Kasarwadi, Matunga West, G/N Ward, Mumbai Zone 2, Mumbai City District, Maharashtra, 400016, India",
+      "area": "Dadar Sector-1",
+      "city": "Dadar",
+      "status": "Completed",
+      "routeStatus": "assigned_today",
+      "assignedDriverId": "DRV-101",
+      "assignedRouteDate": "2026-10-12",
+      "scheduledForDate": "2026-10-12",
+      "reportedBy": "Nirbhay",
+      "timestamp": 1791779722390,
+      "createdAt": "2026-10-12T04:35:22.390Z",
+      "photo": "/uploads/photo-1791779861457-443852377.jpeg",
+      "resolvedAt": "2026-10-12T04:37:41.778Z",
+      "resolvedTimestamp": 1791779861778
     }
   ],
   "drivers": [
@@ -264,6 +289,19 @@
         "salt": "a0e02a906a5da24c612397c3da170d1a",
         "passwordHash": "7fb1876ce92d9b1c6124f5d34087455e8b10b5e5b5fcd9373d61ee03c4d4e6a6b57cf99dcc4f5b74104df4f06e63e2735fd631dd7ee6491c29c9ea4cd3095b17",
         "createdAt": "2026-10-11T14:55:08.388Z"
+      },
+      {
+        "id": "CIT-633534",
+        "name": "Nirbhay",
+        "email": "nibhay@123",
+        "role": "citizen",
+        "vehicle": "",
+        "state": "",
+        "district": "",
+        "city": "",
+        "salt": "1a423bbdb4a3cd9eae2f652a96970d41",
+        "passwordHash": "142e8092daf12527911599e939a1d3b7e98cd51cf9c2a23f0d8346f40c7fe3c0582d0cafc773ee65f30d5ce1d440c8260a59669c4dd37a528217ae4ac87adc76",
+        "createdAt": "2026-10-12T04:33:53.725Z"
       }
     ],
     "drivers": [
@@ -355,86 +393,30 @@
       {
         "index": 1,
         "label": "Point 1",
-        "lat": 19.231907121356908,
-        "lng": 73.13148543197795,
-        "savedAt": "2026-08-30T16:24:10.816Z"
+        "lat": 19.02823373110675,
+        "lng": 72.84373796703584,
+        "savedAt": "2026-10-12T04:29:38.039Z"
       },
       {
         "index": 2,
         "label": "Point 2",
-        "lat": 19.22984706396665,
-        "lng": 73.12929779268319,
-        "savedAt": "2026-08-30T16:24:10.816Z"
+        "lat": 19.02630791742151,
+        "lng": 72.84318033349011,
+        "savedAt": "2026-10-12T04:29:38.039Z"
       },
       {
         "index": 3,
         "label": "Point 3",
-        "lat": 19.229288056821865,
-        "lng": 73.12779647159854,
-        "savedAt": "2026-08-30T16:24:10.816Z"
+        "lat": 19.0279458339068,
+        "lng": 72.84150743285296,
+        "savedAt": "2026-10-12T04:29:38.039Z"
       },
       {
         "index": 4,
         "label": "Point 4",
-        "lat": 19.228802954005427,
-        "lng": 73.12668672634665,
-        "savedAt": "2026-08-30T16:24:10.816Z"
-      },
-      {
-        "index": 5,
-        "label": "Point 5",
-        "lat": 19.22776611298232,
-        "lng": 73.12621488257719,
-        "savedAt": "2026-08-30T16:24:10.816Z"
-      },
-      {
-        "index": 6,
-        "label": "Point 6",
-        "lat": 19.226388549669764,
-        "lng": 73.12621488257719,
-        "savedAt": "2026-08-30T16:24:10.816Z"
-      },
-      {
-        "index": 7,
-        "label": "Point 7",
-        "lat": 19.224241148527934,
-        "lng": 73.12690120078729,
-        "savedAt": "2026-08-30T16:24:10.816Z"
-      },
-      {
-        "index": 8,
-        "label": "Point 8",
-        "lat": 19.22480838929314,
-        "lng": 73.13033279183789,
-        "savedAt": "2026-08-30T16:24:10.816Z"
-      },
-      {
-        "index": 9,
-        "label": "Point 9",
-        "lat": 19.224889423528303,
-        "lng": 73.13312095956651,
-        "savedAt": "2026-08-30T16:24:10.816Z"
-      },
-      {
-        "index": 10,
-        "label": "Point 10",
-        "lat": 19.22707733276997,
-        "lng": 73.13320674934279,
-        "savedAt": "2026-08-30T16:24:10.816Z"
-      },
-      {
-        "index": 11,
-        "label": "Point 11",
-        "lat": 19.22934624491006,
-        "lng": 73.13342122378344,
-        "savedAt": "2026-08-30T16:24:10.816Z"
-      },
-      {
-        "index": 12,
-        "label": "Point 12",
-        "lat": 19.231169455169503,
-        "lng": 73.13393596244102,
-        "savedAt": "2026-08-30T16:24:10.816Z"
+        "lat": 19.028588668298724,
+        "lng": 72.84207181560457,
+        "savedAt": "2026-10-12T04:29:38.039Z"
       }
     ]
   },
@@ -938,6 +920,74 @@
         "fuelSavings": "22%",
         "createdAt": "2026-09-28T13:25:38.494Z",
         "lockedAt": "2026-09-28T14:02:43.156Z"
+      },
+      "2026-10-12": {
+        "driverId": "DRV-101",
+        "routeDate": "2026-10-12",
+        "collectionPoints": [
+          {
+            "lat": 19.02823373110675,
+            "lng": 72.84373796703584,
+            "label": "Point 1"
+          },
+          {
+            "lat": 19.02630791742151,
+            "lng": 72.84318033349011,
+            "label": "Point 2"
+          },
+          {
+            "lat": 19.0279458339068,
+            "lng": 72.84150743285296,
+            "label": "Point 3"
+          },
+          {
+            "lat": 19.028588668298724,
+            "lng": 72.84207181560457,
+            "label": "Point 4"
+          }
+        ],
+        "routeStatus": "locked",
+        "optimizedStops": [
+          {
+            "label": "Point 1",
+            "lat": 19.02823373110675,
+            "lng": 72.84373796703584,
+            "type": "collection"
+          },
+          {
+            "label": "Garbage Overflow - Dadar Sector-1",
+            "lat": 19.026947,
+            "lng": 72.843454,
+            "type": "complaint",
+            "id": "COMP-975"
+          },
+          {
+            "label": "Point 2",
+            "lat": 19.02630791742151,
+            "lng": 72.84318033349011,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 3",
+            "lat": 19.0279458339068,
+            "lng": 72.84150743285296,
+            "type": "collection",
+            "id": null
+          },
+          {
+            "label": "Point 4",
+            "lat": 19.028588668298724,
+            "lng": 72.84207181560457,
+            "type": "collection",
+            "id": null
+          }
+        ],
+        "totalDistance": "1.65 km",
+        "estimatedTime": "15 mins",
+        "fuelSavings": "23%",
+        "createdAt": "2026-10-12T04:27:41.072Z",
+        "lockedAt": "2026-10-12T04:36:38.427Z"
       }
     }
   }
