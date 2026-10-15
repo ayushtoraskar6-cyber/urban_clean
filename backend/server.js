@@ -353,9 +353,9 @@ app.get('/api/complaints', (req, res) => {
             (c.userId && String(c.userId) === String(userId)) ||
             (c.reportedBy && String(c.reportedBy).toLowerCase() === String(userId).toLowerCase())
         );
-    } else if (city) {
+    } else if (city && city.toLowerCase() !== 'all') {
         // Admins and Drivers filter by city jurisdiction if requested
-        result = result.filter(c => c.city.toLowerCase() === city.toLowerCase());
+        result = result.filter(c => c.city && c.city.toLowerCase() === city.toLowerCase());
     }
     
     res.json(result);

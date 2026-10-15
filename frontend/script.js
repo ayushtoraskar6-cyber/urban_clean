@@ -513,6 +513,7 @@ async function applyLocationChange() {
     } else if (CURRENT_PAGE === 'admin.html') {
         renderAdminPortal();
         renderAdminNotices();
+        renderMonthlyReport();
     } else if (CURRENT_PAGE === 'citizen.html') {
         renderCitizenTrackList();
     }
@@ -1947,20 +1948,33 @@ function closeTodayComplaintsModal() {
 // ---- Monthly Report Table (last 30 days) ----
 function renderMonthlyReport() {
     const tbody = document.getElementById('monthly-report-tbody');
+    const areaTag = document.getElementById('monthly-report-area-tag');
     if (!tbody) return;
 
+    const currentCity = (STATE.location && STATE.location.city) ? STATE.location.city : 'All';
+    if (areaTag) {
+        areaTag.innerText = `Jurisdiction: ${currentCity === 'all' ? 'All Municipalities (Statewide)' : currentCity}`;
+    }
+
     const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-    const list = STATE.complaints
-        .filter(c => c.timestamp >= thirtyDaysAgo)
+    const list = (STATE.complaints || [])
+        .filter(c => {
+            if (c.timestamp && c.timestamp < thirtyDaysAgo) return false;
+            if (currentCity && currentCity.toLowerCase() !== 'all') {
+                return (c.city || '').toLowerCase() === currentCity.toLowerCase();
+            }
+            return true;
+        })
         .sort((a, b) => b.timestamp - a.timestamp);
 
     if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 32px; color: var(--text-muted);">No complaints in the last 30 days.</td></tr>`;
+        const displayCity = currentCity === 'all' ? 'statewide' : currentCity;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 32px; color: var(--text-muted);"><i class="fa-solid fa-circle-info" style="margin-right: 8px;"></i>No complaints in the last 30 days for ${displayCity}.</td></tr>`;
         return;
     }
     const badgeMap = { 'Open': 'badge-danger', 'Pending': 'badge-warning', 'In Progress': 'badge-primary', 'Completed': 'badge-success' };
     tbody.innerHTML = list.map(c => {
-        const d = new Date(c.timestamp);
+        const d = new Date(c.timestamp || Date.now());
         const dateStr = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`;
         return `
             <tr>
@@ -1976,19 +1990,30 @@ function renderMonthlyReport() {
 
 // ---- Export Monthly Report as CSV (Excel-compatible) ----
 function exportMonthlyReportToCSV() {
+    const currentCity = (STATE.location && STATE.location.city) ? STATE.location.city : 'All';
     const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-    const list = STATE.complaints
-        .filter(c => c.timestamp >= thirtyDaysAgo)
+    const list = (STATE.complaints || [])
+        .filter(c => {
+            if (c.timestamp && c.timestamp < thirtyDaysAgo) return false;
+            if (currentCity && currentCity.toLowerCase() !== 'all') {
+                return (c.city || '').toLowerCase() === currentCity.toLowerCase();
+            }
+            return true;
+        })
         .sort((a, b) => b.timestamp - a.timestamp);
 
-    if (list.length === 0) { showToast('No data in the last 30 days to export.', 'error'); return; }
+    if (list.length === 0) {
+        const displayCity = currentCity === 'all' ? 'statewide' : currentCity;
+        showToast(`No data in the last 30 days for ${displayCity} to export.`, 'error');
+        return;
+    }
 
     const esc = (v) => `"${String(v || '').replace(/"/g, '""')}"`;
     const headers = ['Date', 'Complaint ID', 'Category', 'Description', 'Reported By', 'Area', 'City', 'Latitude', 'Longitude', 'Status'];
     const rows = list.map(c => {
-        const d = new Date(c.timestamp);
+        const d = new Date(c.timestamp || Date.now());
         const dateStr = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`;
-        return [esc(dateStr), esc(c.id), esc(c.category), esc(c.description), esc(c.reportedBy), esc(c.area), esc(c.city), esc(c.lat), esc(c.lng), esc(c.status)].join(',');
+        return [esc(dateStr), esc(c.id), esc(c.category), esc(c.description), esc(c.reportedBy), esc(c.area), esc(c.city || currentCity), esc(c.lat), esc(c.lng), esc(c.status)].join(',');
     });
 
     const csv = [headers.join(','), ...rows].join('\n');
@@ -1996,12 +2021,12 @@ function exportMonthlyReportToCSV() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `UrbanClean_Monthly_Report_${new Date().toISOString().slice(0,10)}.csv`;
+    a.download = `UrbanClean_Monthly_Report_${currentCity}_${new Date().toISOString().slice(0,10)}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast('Monthly report exported successfully!', 'success');
+    showToast(`Monthly report for ${currentCity} exported successfully!`, 'success');
 }
 
 window.openTodayComplaintsModal = openTodayComplaintsModal;
@@ -2029,7 +2054,10 @@ function drawAllMapMarkers() {
     STATE.markers[currentMarkersKey].forEach(m => mapInstance.removeLayer(m));
     STATE.markers[currentMarkersKey] = [];
 
-    const cityComplaints = STATE.complaints.filter(c => c.city.toLowerCase() === STATE.location.city.toLowerCase());
+    const cityComplaints = STATE.complaints.filter(c => {
+        if (!STATE.location.city || STATE.location.city.toLowerCase() === 'all') return true;
+        return (c.city || '').toLowerCase() === STATE.location.city.toLowerCase();
+    });
 
     cityComplaints.forEach(c => {
         if (currentMarkersKey === 'driver') {
