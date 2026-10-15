@@ -17,12 +17,9 @@ DB_JSON_PATH = os.path.join(BACKEND_DIR, "db.json")
 SQLITE_SYNC_SCRIPT = os.path.join(BACKEND_DIR, "sync_sqlite.py")
 SQLITE_DB_PATH = os.path.join(BACKEND_DIR, "urban_clean.db")
 
-def main():
-    print("=" * 60)
-    print("  UrbanClean: Live Cloud -> Local SQLite Sync Tool")
-    print(f"  Target: {LIVE_URL}")
-    print("=" * 60)
+import time
 
+def sync_once(quiet=False):
     try:
         # 1. Try to fetch full DB dump from live Render
         dump_url = f"{LIVE_URL}/api/database/dump"
@@ -31,10 +28,12 @@ def main():
         try:
             with urllib.request.urlopen(req, timeout=30) as response:
                 live_data = json.loads(response.read().decode('utf-8'))
-                print(">>> Successfully downloaded full database from Render!")
+                if not quiet:
+                    print(">>> Successfully downloaded full database from Render!")
         except Exception:
             # Fallback: fetch complaints and merge with local accounts if dump not yet deployed
-            print(">>> Downloading complaints from live deployment...")
+            if not quiet:
+                print(">>> Downloading complaints from live deployment...")
             comp_url = f"{LIVE_URL}/api/complaints"
             with urllib.request.urlopen(comp_url, timeout=30) as comp_res:
                 live_complaints = json.loads(comp_res.read().decode('utf-8'))
@@ -46,27 +45,60 @@ def main():
         # 2. Save into local backend/db.json
         with open(DB_JSON_PATH, 'w', encoding='utf-8') as f:
             json.dump(live_data, f, indent=2)
-        print(f">>> Updated local {DB_JSON_PATH}")
+        if not quiet:
+            print(f">>> Updated local {DB_JSON_PATH}")
 
         # 3. Run sync_sqlite.py to rebuild local urban_clean.db
         subprocess.run([sys.executable, SQLITE_SYNC_SCRIPT], check=True)
-        print(f">>> Updated local SQLite: {SQLITE_DB_PATH}")
+        if not quiet:
+            print(f">>> Updated local SQLite: {SQLITE_DB_PATH}")
 
         # 4. Print Summary
         accounts = live_data.get('accounts', {})
         total_accounts = sum(len(v) for v in accounts.values()) if isinstance(accounts, dict) else 0
         total_complaints = len(live_data.get('complaints', []))
         
-        print("\n" + "-" * 60)
-        print(f"  SYNC COMPLETE!")
-        print(f"  Total Accounts in SQLite:   {total_accounts}")
-        print(f"  Total Complaints in SQLite: {total_complaints}")
-        print("-" * 60)
-        print("\nNow you can open DB Browser for SQLite and see all live data:")
-        print(f'  & "{BASE_DIR}\\DB_Browser_SQLite\\DB Browser for SQLite.exe" "{SQLITE_DB_PATH}"\n')
+        if not quiet:
+            print("\n" + "-" * 60)
+            print(f"  SYNC COMPLETE!")
+            print(f"  Total Accounts in SQLite:   {total_accounts}")
+            print(f"  Total Complaints in SQLite: {total_complaints}")
+            print("-" * 60)
+            print("\nNow you can open DB Browser for SQLite and see all live data:")
+            print(f'  & "{BASE_DIR}\\DB_Browser_SQLite\\DB Browser for SQLite.exe" "{SQLITE_DB_PATH}"\n')
+        else:
+            now_str = time.strftime("%H:%M:%S")
+            print(f"[{now_str}] Auto-synced with Render (Accounts: {total_accounts}, Complaints: {total_complaints})")
+        return True
 
     except Exception as e:
         print(f"[Error] Failed to sync live database: {e}")
+        return False
+
+def main():
+    is_watch = "--watch" in sys.argv or "--auto" in sys.argv
+
+    print("=" * 60)
+    print("  UrbanClean: Live Cloud -> Local SQLite Sync Tool")
+    print(f"  Target: {LIVE_URL}")
+    if is_watch:
+        print("  Mode:   CONTINUOUS AUTOMATIC LIVE SYNC (Every 10s)")
+    else:
+        print("  Mode:   Single Sync (Run with --watch for automatic background sync)")
+    print("=" * 60)
+
+    if not is_watch:
+        sync_once(quiet=False)
+    else:
+        print("Starting continuous live sync... (Press Ctrl+C to stop)\n")
+        sync_once(quiet=False)
+        while True:
+            try:
+                time.sleep(10)
+                sync_once(quiet=True)
+            except KeyboardInterrupt:
+                print("\nAuto-sync stopped by user.")
+                break
 
 if __name__ == "__main__":
     main()
