@@ -99,7 +99,7 @@ function passwordHash(password, salt) {
     return crypto.scryptSync(password, salt, 64).toString('hex');
 }
 
-function createAccount({ id, name, email, password, role, vehicle = '', state = '', district = '', city = '' }) {
+function createAccount({ id, name, email, password, role, vehicle = '', state = '', district = '', city = '', isSuperAdmin = false }) {
     const salt = crypto.randomBytes(16).toString('hex');
     return {
         id,
@@ -110,6 +110,7 @@ function createAccount({ id, name, email, password, role, vehicle = '', state = 
         state,
         district,
         city,
+        isSuperAdmin: !!isSuperAdmin,
         salt,
         passwordHash: passwordHash(password, salt),
         createdAt: new Date().toISOString()
@@ -120,8 +121,64 @@ function createAccount({ id, name, email, password, role, vehicle = '', state = 
 // managed independently for citizens, collection drivers, and administrators.
 function ensureAccountStore(db) {
     if (db.accounts) {
-        // Ensure Kalyan admin exists even if accounts were already seeded
         const admins = db.accounts.admins || [];
+
+        // Ensure Super Admin exists
+        const superExists = admins.find(a => a.email === 'superadmin@urbanclean.org' || a.email === 'admin@urbanclean.org');
+        if (!superExists) {
+            admins.unshift(createAccount({
+                id: 'ADM-SUPER-001',
+                name: 'State Municipal Director (Super Admin)',
+                email: 'superadmin@urbanclean.org',
+                password: 'Admin@123',
+                role: 'admin',
+                state: 'Maharashtra',
+                district: '',
+                city: '',
+                isSuperAdmin: true
+            }));
+            db.accounts.admins = admins;
+            writeDB(db);
+        } else {
+            superExists.isSuperAdmin = true;
+            superExists.name = 'State Municipal Director (Super Admin)';
+        }
+
+        // Ensure BMC Mumbai Dadar admin exists
+        const bmcExists = admins.find(a => a.email === 'bmc.admin@urbanclean.org');
+        if (!bmcExists) {
+            admins.push(createAccount({
+                id: 'ADM-BMC-001',
+                name: 'BMC Mumbai Municipal Admin',
+                email: 'bmc.admin@urbanclean.org',
+                password: 'Admin@123',
+                role: 'admin',
+                state: 'Maharashtra',
+                district: 'Mumbai City',
+                city: 'Dadar'
+            }));
+            db.accounts.admins = admins;
+            writeDB(db);
+        }
+
+        // Ensure Kulgaon-Badlapur admin exists
+        const bdlExists = admins.find(a => a.email === 'badlapur.admin@urbanclean.org');
+        if (!bdlExists) {
+            admins.push(createAccount({
+                id: 'ADM-BDL-001',
+                name: 'Kulgaon-Badlapur Municipal Admin',
+                email: 'badlapur.admin@urbanclean.org',
+                password: 'Admin@123',
+                role: 'admin',
+                state: 'Maharashtra',
+                district: 'Thane',
+                city: 'Badlapur'
+            }));
+            db.accounts.admins = admins;
+            writeDB(db);
+        }
+
+        // Ensure Kalyan admin exists
         const kalyanExists = admins.find(a => a.email === 'kalyan.admin@urbanclean.org');
         if (!kalyanExists) {
             admins.push(createAccount({
@@ -137,6 +194,7 @@ function ensureAccountStore(db) {
             db.accounts.admins = admins;
             writeDB(db);
         }
+
         // Ensure Shreedhar citizen account exists
         const citizens = db.accounts.citizens || [];
         const shreedharExists = citizens.find(c => c.id === 'CIT-788501' || c.name.toLowerCase() === 'shreedhar');
@@ -158,10 +216,19 @@ function ensureAccountStore(db) {
     }
 
     db.accounts = {
-        citizens: [createAccount({ id: 'CIT-702', name: 'Ayush Sharma', email: 'ayush@urbanclean.org', password: 'Citizen@123', role: 'citizen' })],
-        drivers: [createAccount({ id: 'DRV-101', name: 'Ramesh Kumar', email: 'ramesh@urbanclean.org', password: 'Driver@123', role: 'driver', vehicle: 'MH-02-EG-4521' })],
+        citizens: [
+            createAccount({ id: 'CIT-702', name: 'Ayush Sharma', email: 'ayush@urbanclean.org', password: 'Citizen@123', role: 'citizen' }),
+            createAccount({ id: 'CIT-788501', name: 'Shreedhar', email: 'shreedhar@urbanclean.org', password: 'Citizen@123', role: 'citizen', city: 'Badlapur', district: 'Thane' })
+        ],
+        drivers: [
+            createAccount({ id: 'DRV-101', name: 'Ramesh Kumar', email: 'ramesh@urbanclean.org', password: 'Driver@123', role: 'driver', vehicle: 'MH-02-EG-4521', city: 'Dadar', district: 'Mumbai City' }),
+            createAccount({ id: 'DRV-102', name: 'Amit Patel', email: 'amit@urbanclean.org', password: 'Driver@123', role: 'driver', vehicle: 'MH-03-DF-8812', city: 'Kalyan', district: 'Thane' }),
+            createAccount({ id: 'DRV-103', name: 'Sunil Shinde', email: 'sunil@urbanclean.org', password: 'Driver@123', role: 'driver', vehicle: 'MH-05-AL-6490', city: 'Badlapur', district: 'Thane' })
+        ],
         admins: [
-            createAccount({ id: 'ADM-999', name: 'MCGM Administrator', email: 'admin@urbanclean.org', password: 'Admin@123', role: 'admin' }),
+            createAccount({ id: 'ADM-SUPER-001', name: 'State Municipal Director (Super Admin)', email: 'superadmin@urbanclean.org', password: 'Admin@123', role: 'admin', isSuperAdmin: true }),
+            createAccount({ id: 'ADM-BMC-001', name: 'BMC Mumbai Municipal Admin', email: 'bmc.admin@urbanclean.org', password: 'Admin@123', role: 'admin', state: 'Maharashtra', district: 'Mumbai City', city: 'Dadar' }),
+            createAccount({ id: 'ADM-BDL-001', name: 'Kulgaon-Badlapur Municipal Admin', email: 'badlapur.admin@urbanclean.org', password: 'Admin@123', role: 'admin', state: 'Maharashtra', district: 'Thane', city: 'Badlapur' }),
             createAccount({ id: 'ADM-KLY-001', name: 'Kalyan Municipal Admin', email: 'kalyan.admin@urbanclean.org', password: 'Admin@123', role: 'admin', state: 'Maharashtra', district: 'Thane', city: 'Kalyan' })
         ]
     };
@@ -208,7 +275,7 @@ app.post('/api/login', (req, res) => {
         }
     }
 
-    res.json({ success: true, user: { role: account.role, name: account.name, email: account.email, id: account.id, vehicle: account.vehicle, state: account.state || '', district: account.district || '', city: account.city || '' } });
+    res.json({ success: true, user: { role: account.role, name: account.name, email: account.email, id: account.id, vehicle: account.vehicle, state: account.state || '', district: account.district || '', city: account.city || '', isSuperAdmin: !!account.isSuperAdmin } });
 });
 
 // Driver Logout - automatically set status to Off-Duty
@@ -943,6 +1010,75 @@ app.delete('/api/admin/notifications/:id', (req, res) => {
     db.notifications = (db.notifications || []).filter(n => n.id !== id);
     writeDB(db);
     res.json({ success: true, message: 'Notification removed.' });
+});
+
+// 10. Super Admin: Provision New Municipal Corporation Administrator Account
+app.post('/api/admin/provision-admin', (req, res) => {
+    try {
+        const { name, email, password, state, district, city } = req.body;
+        if (!name?.trim() || !email?.trim() || !password || password.length < 8 || !city?.trim()) {
+            return res.status(400).json({ error: 'Municipal authority name, valid email, assigned city, and password of at least 8 characters are required.' });
+        }
+
+        const db = readDB();
+        const accounts = ensureAccountStore(db);
+        const normalizedEmail = email.trim().toLowerCase();
+        const emailInUse = Object.values(accounts).flat().some(a => a.email === normalizedEmail);
+        if (emailInUse) return res.status(409).json({ error: 'An administrator account already exists with this email address.' });
+
+        const adminId = 'ADM-' + city.trim().toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3) + '-' + Math.floor(100 + Math.random() * 900);
+        const targetCity = city.trim();
+        const targetDistrict = district?.trim() || 'Thane';
+        const targetState = state?.trim() || 'Maharashtra';
+
+        const newAdmin = createAccount({
+            id: adminId,
+            name: name.trim(),
+            email: normalizedEmail,
+            password,
+            role: 'admin',
+            state: targetState,
+            district: targetDistrict,
+            city: targetCity
+        });
+
+        accounts.admins.push(newAdmin);
+
+        // System notification
+        db.notifications = db.notifications || [];
+        db.notifications.unshift({
+            id: 'NT-' + String(Date.now()).slice(-4),
+            title: `New Municipal Administration Online (${targetCity})`,
+            message: `${name.trim()} provisioned as active municipal authority for ${targetCity} (${targetDistrict}).`,
+            type: 'info',
+            city: targetCity,
+            district: targetDistrict,
+            timeStr: 'Just now',
+            timestamp: Date.now()
+        });
+
+        writeDB(db);
+        res.status(201).json({ success: true, admin: newAdmin });
+    } catch (err) {
+        console.error('Error provisioning municipal admin:', err);
+        res.status(500).json({ error: 'Internal error provisioning municipal admin.' });
+    }
+});
+
+// List all registered municipal corporation admins (for Super Admin dashboard)
+app.get('/api/admin/municipal-admins', (req, res) => {
+    const db = readDB();
+    const accounts = ensureAccountStore(db);
+    const admins = (accounts.admins || []).map(a => ({
+        id: a.id,
+        name: a.name,
+        email: a.email,
+        city: a.city || 'Statewide (Super Admin)',
+        district: a.district || 'All Districts',
+        isSuperAdmin: !!a.isSuperAdmin,
+        createdAt: a.createdAt
+    }));
+    res.json(admins);
 });
 
 // Fallback: Redirect all other requests to Landing Page

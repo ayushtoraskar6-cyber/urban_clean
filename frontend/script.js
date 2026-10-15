@@ -362,7 +362,10 @@ function setupGlobalHeader() {
         let roleLabel = 'Citizen';
         let badgeClass = 'badge-info';
         if (STATE.user.role === 'driver') { roleLabel = 'Driver'; badgeClass = 'badge-primary'; }
-        if (STATE.user.role === 'admin') { roleLabel = 'Admin'; badgeClass = 'badge-danger'; }
+        if (STATE.user.role === 'admin') {
+            roleLabel = STATE.user.isSuperAdmin ? 'Super Admin' : 'Admin';
+            badgeClass = STATE.user.isSuperAdmin ? 'badge-warning' : 'badge-danger';
+        }
 
         profileWidget.innerHTML = `
             <div class="user-profile-widget" style="cursor: pointer;">
@@ -457,8 +460,10 @@ function setupLocationSelectors() {
     // This version of UrbanClean serves Maharashtra, so reset any old saved
     // location to a valid district/city before building the dropdown options.
     STATE.location.state = 'Maharashtra';
+    const isSuper = !!(STATE.user && STATE.user.isSuperAdmin);
+
     if (!MAHARASHTRA_LOCATIONS[STATE.location.district]) STATE.location.district = 'Mumbai City';
-    if (!MAHARASHTRA_LOCATIONS[STATE.location.district].includes(STATE.location.city)) {
+    if (!MAHARASHTRA_LOCATIONS[STATE.location.district].includes(STATE.location.city) && !(isSuper && STATE.location.city === 'all')) {
         STATE.location.city = MAHARASHTRA_LOCATIONS[STATE.location.district][0];
     }
 
@@ -468,8 +473,12 @@ function setupLocationSelectors() {
     districtSelect.value = STATE.location.district;
 
     const renderCities = () => {
-        citySelect.innerHTML = MAHARASHTRA_LOCATIONS[STATE.location.district]
+        let cityOptions = MAHARASHTRA_LOCATIONS[STATE.location.district]
             .map(city => `<option value="${city}">${city}</option>`).join('');
+        if (isSuper) {
+            cityOptions = `<option value="all">🌟 All Municipalities (Statewide Overview)</option>` + cityOptions;
+        }
+        citySelect.innerHTML = cityOptions;
         citySelect.value = STATE.location.city;
     };
     renderCities();
@@ -488,7 +497,8 @@ function setupLocationSelectors() {
 
 async function applyLocationChange() {
     saveLocationToStorage();
-    showToast(`Location changed to: ${STATE.location.city}, ${STATE.location.district}`, 'info');
+    const cityLabel = STATE.location.city === 'all' ? 'All Municipalities (Statewide)' : `${STATE.location.city}, ${STATE.location.district}`;
+    showToast(`Location changed to: ${cityLabel}`, 'info');
     await fetchComplaints();
     await fetchDrivers();
     await fetchNotifications();
@@ -1222,7 +1232,96 @@ function initAdminPage() {
         });
     }
 
+    // 3. Super Admin Directorate Mode
+    const isSuperAdmin = !!(STATE.user && STATE.user.isSuperAdmin);
+    const superAdminBanner = document.getElementById('superadmin-banner');
+    const superAdminSection = document.getElementById('superadmin-corporations-section');
+    const openProvisionAdminBtn = document.getElementById('btn-open-provision-admin-modal');
+    const provisionAdminModal = document.getElementById('provision-admin-modal');
+    const closeProvisionAdminBtn = document.getElementById('btn-close-provision-admin-modal');
+    const provisionAdminForm = document.getElementById('form-provision-admin');
+
+    if (isSuperAdmin) {
+        if (superAdminBanner) superAdminBanner.style.display = 'block';
+        if (superAdminSection) superAdminSection.style.display = 'block';
+        loadSuperAdminMunicipalAdmins();
+
+        if (openProvisionAdminBtn && provisionAdminModal) {
+            openProvisionAdminBtn.addEventListener('click', () => {
+                provisionAdminModal.classList.add('active');
+            });
+        }
+        if (closeProvisionAdminBtn && provisionAdminModal) {
+            closeProvisionAdminBtn.addEventListener('click', () => provisionAdminModal.classList.remove('active'));
+            provisionAdminModal.addEventListener('click', (e) => {
+                if (e.target === provisionAdminModal) provisionAdminModal.classList.remove('active');
+            });
+        }
+        if (provisionAdminForm) {
+            provisionAdminForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = document.getElementById('new-admin-name').value.trim();
+                const email = document.getElementById('new-admin-email').value.trim();
+                const password = document.getElementById('new-admin-password').value;
+                const district = document.getElementById('new-admin-district').value;
+                const city = document.getElementById('new-admin-city').value.trim();
+
+                try {
+                    showToast('Provisioning Municipal Admin account...', 'info');
+                    const res = await fetch('/api/admin/provision-admin', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, email, password, district, city })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Failed to provision admin account.');
+
+                    showToast(`Municipal Admin for ${city} created successfully!`, 'success');
+                    provisionAdminForm.reset();
+                    provisionAdminModal.classList.remove('active');
+                    await loadSuperAdminMunicipalAdmins();
+                    await fetchNotifications();
+                    renderAdminNotices();
+                } catch (err) {
+                    showToast(err.message, 'error');
+                }
+            });
+        }
+    }
+
     renderAdminNotices();
+}
+
+async function loadSuperAdminMunicipalAdmins() {
+    const tbody = document.getElementById('superadmin-admins-tbody');
+    const countBadge = document.getElementById('superadmin-admins-count');
+    if (!tbody) return;
+
+    try {
+        const res = await fetch('/api/admin/municipal-admins');
+        if (res.ok) {
+            const admins = await res.json();
+            if (countBadge) countBadge.textContent = `${admins.length} Corporations Active`;
+            if (admins.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:16px; color:var(--text-secondary);">No municipal admins found.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = admins.map(adm => `
+                <tr>
+                    <td><strong>${adm.id}</strong></td>
+                    <td>
+                        <div style="font-weight: 600; color: var(--text-primary);">${adm.name}</div>
+                        <small style="color: var(--text-secondary);"><i class="fa-solid fa-location-dot"></i> ${adm.city}</small>
+                    </td>
+                    <td>${adm.district || 'Maharashtra'}</td>
+                    <td><a href="mailto:${adm.email}" style="color: var(--primary); font-weight: 500;">${adm.email}</a></td>
+                    <td><span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Provisioned</span></td>
+                </tr>
+            `).join('');
+        }
+    } catch (e) {
+        console.warn('Could not load municipal admins:', e);
+    }
 }
 
 async function renderAdminNotices() {
@@ -1492,14 +1591,17 @@ function renderDashboardLists() {
     if (!list) return;
 
     const cityComplaints = STATE.complaints
-        .filter(c => c.city.toLowerCase() === STATE.location.city.toLowerCase())
+        .filter(c => {
+            if (!STATE.location.city || STATE.location.city === 'all') return true;
+            return (c.city || '').toLowerCase() === STATE.location.city.toLowerCase();
+        })
         .sort((a, b) => b.timestamp - a.timestamp);
 
     if (cityComplaints.length === 0) {
         list.innerHTML = `
             <div style="text-align: center; color: var(--text-muted); padding: 32px 0;">
                 <i class="fa-solid fa-circle-check" style="font-size: 2rem; color: var(--primary-green); margin-bottom: 8px;"></i>
-                <p style="font-size: 0.85rem; font-weight: 500;">No active garbage complaints in this city!</p>
+                <p style="font-size: 0.85rem; font-weight: 500;">No active garbage complaints in this area!</p>
             </div>
         `;
     } else {
@@ -1514,7 +1616,7 @@ function renderDashboardLists() {
                     <img class="complaint-thumb" src="${c.photo}" alt="Trash issue">
                     <div class="complaint-info">
                         <h5>${c.title}</h5>
-                        <p>${c.area}, ${STATE.location.city}</p>
+                        <p>${c.area}, ${c.city || STATE.location.city}</p>
                     </div>
                     <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
                         <span class="badge ${statusBadge}">${c.status}</span>
@@ -1530,7 +1632,10 @@ function renderDashboardLists() {
         const areas = {
             'Bandra': ['Bandra West', 'Bandra East', 'Carter Road', 'Bandra Kurla Complex'],
             'Khar': ['Khar West', 'Khar East', 'Carter Road', 'Linking Road'],
-            'Kurla': ['Kurla West', 'Kurla East', 'Kamani', 'LBS Road']
+            'Kurla': ['Kurla West', 'Kurla East', 'Kamani', 'LBS Road'],
+            'Dadar': ['Dadar West', 'Dadar East', 'Shivaji Park', 'Ruparel College', 'Plaza Cinema'],
+            'Badlapur': ['Badlapur East', 'Badlapur West', 'Katrap', 'Gandhi Chowk', 'Shirgaon'],
+            'Kalyan': ['Kalyan West', 'Kalyan East', 'Station Road', 'Shivaji Chowk', 'Kharkadak']
         };
 
         const activeAreas = areas[STATE.location.city] || ['Sector 1', 'Sector 2', 'Sector 3'];
@@ -1544,6 +1649,43 @@ function renderDashboardLists() {
             </tr>
         `).join('');
     }
+
+    renderHomeAdvisories();
+}
+
+function renderHomeAdvisories() {
+    const list = document.getElementById('home-advisories-list');
+    const badge = document.getElementById('advisories-badge');
+    const cityLabel = document.getElementById('advisory-city-label');
+    if (!list) return;
+
+    const currentCity = (STATE.location && STATE.location.city) ? (STATE.location.city === 'all' ? 'All Municipalities' : STATE.location.city) : 'All';
+    if (cityLabel) cityLabel.textContent = currentCity;
+
+    const notices = STATE.notifications || [];
+    if (badge) badge.textContent = `${notices.length} Active`;
+
+    if (notices.length === 0) {
+        list.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 24px 8px;">
+                <i class="fa-regular fa-circle-check" style="font-size: 1.8rem; color: var(--primary-green); display: block; margin-bottom: 8px;"></i>
+                <p style="font-size: 0.85rem; font-weight: 500; margin: 4px 0;">No active delays in ${currentCity}</p>
+                <small style="color: var(--text-secondary); font-size: 0.75rem;">Garbage collection is operating normally on schedule.</small>
+            </div>
+        `;
+        return;
+    }
+
+    list.innerHTML = notices.slice(0, 3).map(n => `
+        <div class="advisory-item ${n.type || 'info'}">
+            <div class="advisory-top">
+                <span class="advisory-tag ${n.type || 'info'}">${(n.type || 'NOTICE').toUpperCase()}</span>
+                <span class="advisory-time">${n.timeStr || 'Recent'}</span>
+            </div>
+            <div class="advisory-title">${n.title}</div>
+            <p class="advisory-msg">${n.message}</p>
+        </div>
+    `).join('');
 }
 
 function renderCitizenTrackList() {

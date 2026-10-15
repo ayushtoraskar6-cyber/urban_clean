@@ -73,22 +73,24 @@ try:
         ))
 
     # 4. Accounts
+    cursor.execute("DROP TABLE IF EXISTS accounts;")
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS accounts (
         id TEXT PRIMARY KEY, name TEXT, email TEXT UNIQUE, role TEXT,
+        isSuperAdmin INTEGER DEFAULT 0,
         vehicle TEXT, state TEXT, district TEXT, city TEXT,
         salt TEXT, passwordHash TEXT, createdAt TEXT
     )
     ''')
-    cursor.execute("DELETE FROM accounts;")
     accounts_data = data.get('accounts', {})
     for role_group in ['citizens', 'drivers', 'admins']:
         for acc in accounts_data.get(role_group, []):
             cursor.execute('''
-            INSERT OR REPLACE INTO accounts (id, name, email, role, vehicle, state, district, city, salt, passwordHash, createdAt)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO accounts (id, name, email, role, isSuperAdmin, vehicle, state, district, city, salt, passwordHash, createdAt)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 acc.get('id'), acc.get('name'), acc.get('email'), acc.get('role'),
+                1 if acc.get('isSuperAdmin') else 0,
                 acc.get('vehicle', ''), acc.get('state', ''), acc.get('district', ''), acc.get('city', ''),
                 acc.get('salt'), acc.get('passwordHash'), acc.get('createdAt')
             ))

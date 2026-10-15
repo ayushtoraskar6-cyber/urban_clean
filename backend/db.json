@@ -1,6 +1,30 @@
 {
   "complaints": [
     {
+      "id": "COMP-763",
+      "userId": "CIT-316339",
+      "category": "Garbage Overflow",
+      "title": "Garbage Overflow near Ruparel College",
+      "description": "Near D. G. Ruparel College gate, Senapati Bapat Marg",
+      "lat": 19.025914,
+      "lng": 72.844288,
+      "latitude": 19.025914,
+      "longitude": 72.844288,
+      "address": "D. G. Ruparel College of Arts, Science and Commerce, Senapati Bapat Marg, Matunga West / Dadar, Mumbai, Maharashtra 400016",
+      "area": "Dadar West / Ruparel Campus",
+      "city": "Dadar",
+      "district": "Mumbai City",
+      "status": "Open",
+      "routeStatus": "unassigned",
+      "assignedDriverId": "DRV-101",
+      "assignedRouteDate": "",
+      "scheduledForDate": "2026-10-15",
+      "reportedBy": "Aarti",
+      "timestamp": 1791732000000,
+      "createdAt": "2026-10-15T06:00:00.000Z",
+      "photo": "/uploads/photo-1789110916138-555692987.jpg"
+    },
+    {
       "id": "COMP-492",
       "userId": "CIT-227356",
       "category": "Garbage Overflow",
@@ -351,13 +375,16 @@
     "admins": [
       {
         "id": "ADM-999",
-        "name": "MCGM Administrator",
-        "email": "admin@urbanclean.org",
+        "name": "State Municipal Director (Super Admin)",
+        "email": "superadmin@urbanclean.org",
         "role": "admin",
         "vehicle": "",
         "salt": "b5583f374b3220e4304be38ed1004fea",
         "passwordHash": "b5dac6ec8f33f0bbbfd6bb8e27caa2f11ee20a0ec3277c18536db5e35a31a879fd21cea802ff46eadc4afc386fdfbd3cdf958d3515f206aa2f643c816d4fb796",
-        "createdAt": "2026-08-27T15:07:07.353Z"
+        "createdAt": "2026-08-27T15:07:07.353Z",
+        "isSuperAdmin": true,
+        "city": "",
+        "district": ""
       },
       {
         "id": "ADM-KLY-001",

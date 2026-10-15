@@ -207,13 +207,18 @@
                                 </div>
                             </div>
 
-                            <div class="card content-card promo-card text-center">
-                                <div class="promo-illustration">
-                                    <i class="fa-solid fa-handshake-angle text-gradient"></i>
+                            <div class="card content-card advisories-card">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-bullhorn" style="color: var(--primary); margin-right: 6px;"></i> Area Municipal Advisories</h3>
+                                    <span class="live-pill-badge" id="advisories-badge">Active Alerts</span>
                                 </div>
-                                <h3>Together for a Cleaner Tomorrow</h3>
-                                <p>Small actions today create a cleaner city for tomorrow. Join our community clean drives.</p>
-                                <button class="btn btn-outline" onclick="switchLandingSection(null, 'how-it-works')">Learn More</button>
+                                <div class="advisories-list" id="home-advisories-list">
+                                    <!-- Dynamic items from geofenced notifications -->
+                                </div>
+                                <div class="card-footer-action">
+                                    <span>Broadcasted by Municipal Corp</span>
+                                    <span class="text-muted" id="advisory-city-label" style="font-weight: 600;">Live Sync</span>
+                                </div>
                             </div>
                         </div>
 

@@ -105,6 +105,58 @@
                         <p>Global oversight of city complaints, statistics, live driver routing, and workload management.</p>
                     </div>
 
+                    <!-- Super Admin Statewide Directorate Banner -->
+                    <div id="superadmin-banner" class="card superadmin-banner" style="display: none; margin-bottom: 20px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; border: 1px solid #334155;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #f59e0b, #ef4444); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #fff; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);">
+                                    <i class="fa-solid fa-crown"></i>
+                                </div>
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <h3 style="margin: 0; color: #fff; font-size: 1.15rem;">Maharashtra Statewide Directorate</h3>
+                                        <span class="badge" style="background: #f59e0b; color: #1e293b; font-weight: 800; font-size: 0.7rem; letter-spacing: 0.05em;">SUPER ADMIN</span>
+                                    </div>
+                                    <p style="margin: 4px 0 0 0; color: #94a3b8; font-size: 0.85rem;">
+                                        You have full administrative authority across all municipal corporations. Select any municipality in the location selector above to inspect local operations, or provision new municipal corporation admins below.
+                                    </p>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn btn-warning" id="btn-open-provision-admin-modal" style="font-weight: 700; padding: 9px 18px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
+                                    <i class="fa-solid fa-user-shield"></i> Provision Municipal Admin
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Super Admin: Active Municipal Corporations Directory -->
+                    <div id="superadmin-corporations-section" class="card" style="display: none; margin-bottom: 24px;">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 style="margin: 0;"><i class="fa-solid fa-building-columns" style="color: var(--primary); margin-right: 8px;"></i> Registered Municipal Corporation Admins</h3>
+                                <p style="margin: 0; font-size: 0.8rem; color: var(--text-secondary);">Municipal authorities administering civic waste management under UrbanClean platform</p>
+                            </div>
+                            <span class="badge badge-primary" id="superadmin-admins-count">3 Corporations Active</span>
+                        </div>
+                        <div class="table-responsive" style="margin-top: 12px;">
+                            <table class="tracking-table">
+                                <thead>
+                                    <tr>
+                                        <th>Admin ID</th>
+                                        <th>Municipal Corporation / City</th>
+                                        <th>District</th>
+                                        <th>Official Admin Email</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="superadmin-admins-tbody">
+                                    <!-- Dynamic items -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <!-- Admin Statistics Summary -->
                     <div class="admin-stats-row">
                         <div class="admin-stat-box" id="admin-stat-total-today-box" style="cursor: pointer;" title="Click to view complaints reported today">
@@ -347,6 +399,54 @@
                     </div>
                     <button type="submit" class="btn btn-warning btn-block" style="margin-top: 16px; font-weight: 700;">
                         <i class="fa-solid fa-tower-broadcast"></i> Publish Geofenced Alert
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Provisioning New Municipal Admin (Super Admin Only) -->
+    <div class="modal-overlay" id="provision-admin-modal">
+        <div class="modal-card auth-card" style="max-width: 520px;">
+            <button class="modal-close-btn" id="btn-close-provision-admin-modal">&times;</button>
+            <div class="modal-header">
+                <div class="logo-icon" style="background: rgba(245, 158, 11, 0.15); color: #b45309;"><i class="fa-solid fa-user-shield"></i></div>
+                <h2>Provision Municipal Admin</h2>
+                <p>Create an official Municipal Corporation administrator account with local jurisdiction authority.</p>
+            </div>
+            <div class="modal-body">
+                <form id="form-provision-admin">
+                    <div class="form-group">
+                        <label for="new-admin-name">Admin Officer / Department Name</label>
+                        <input type="text" id="new-admin-name" required placeholder="e.g. Pune Municipal Corporation (PMC)">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-admin-email">Official Admin Email</label>
+                        <input type="email" id="new-admin-email" required placeholder="pune.admin@urbanclean.org">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-admin-password">Initial Password (min 8 characters)</label>
+                        <input type="password" id="new-admin-password" required placeholder="Admin@123">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-admin-district">District Jurisdiction</label>
+                        <select id="new-admin-district" required style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-family: inherit;">
+                            <option value="Mumbai City">Mumbai City</option>
+                            <option value="Mumbai Suburban">Mumbai Suburban</option>
+                            <option value="Thane" selected>Thane</option>
+                            <option value="Pune">Pune</option>
+                            <option value="Nashik">Nashik</option>
+                            <option value="Nagpur">Nagpur</option>
+                            <option value="Palghar">Palghar</option>
+                            <option value="Raigad">Raigad</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-admin-city">City / Municipal Ward</label>
+                        <input type="text" id="new-admin-city" required placeholder="e.g. Pune, Navi Mumbai, Thane, Kalyan">
+                    </div>
+                    <button type="submit" class="btn btn-warning btn-block" style="margin-top: 16px; font-weight: 700;">
+                        <i class="fa-solid fa-check"></i> Provision Municipal Admin Account
                     </button>
                 </form>
             </div>
