@@ -237,12 +237,14 @@ app.patch('/api/drivers/:id/status', (req, res) => {
     res.json(driver);
 });
 
-// 2. Register citizen and driver accounts. Administrators are provisioned by
-// the municipality and therefore cannot be created from the public portal.
+// 2. Register citizen accounts. Collection drivers and administrators
+// are provisioned by the municipality and cannot be registered publicly.
 app.post('/api/signup', (req, res) => {
     const { role, name, email, password } = req.body;
     const collection = roleCollection(role);
-    if (!['citizen', 'driver'].includes(role)) return res.status(403).json({ error: 'Administrator accounts are provisioned by the municipality.' });
+    if (role !== 'citizen') {
+        return res.status(403).json({ error: 'Driver and Administrator accounts are provisioned exclusively by the municipal corporation.' });
+    }
     if (!name?.trim() || !email?.trim() || !password || password.length < 8) {
         return res.status(400).json({ error: 'Enter your name, a valid email, and a password of at least 8 characters.' });
     }
@@ -253,13 +255,12 @@ app.post('/api/signup', (req, res) => {
     const emailInUse = Object.values(accounts).flat().some(account => account.email === normalizedEmail);
     if (emailInUse) return res.status(409).json({ error: 'An account already exists with this email address.' });
 
-    const prefix = role === 'citizen' ? 'CIT' : 'DRV';
     const account = createAccount({
-        id: `${prefix}-${String(Date.now()).slice(-6)}`,
-        name: name.trim(), email: normalizedEmail, password, role,
+        id: `CIT-${String(Date.now()).slice(-6)}`,
+        name: name.trim(), email: normalizedEmail, password, role: 'citizen',
         vehicle: ''
     });
-    accounts[collection].push(account);
+    accounts.citizens.push(account);
     writeDB(db);
     res.status(201).json({ success: true, user: { role: account.role, name: account.name, email: account.email, id: account.id, vehicle: account.vehicle } });
 });
@@ -821,19 +822,127 @@ app.get('/api/database/dump', (req, res) => {
     res.json(db);
 });
 
-app.get('/api/database/download', (req, res) => {
-    const scriptPath = path.join(__dirname, 'sync_sqlite.py');
-    const cmd = process.platform === 'win32'
-        ? `python "${scriptPath}"`
-        : `python3 "${scriptPath}" || python "${scriptPath}"`;
-    exec(cmd, () => {
-        const sqliteFile = path.join(__dirname, 'urban_clean.db');
-        if (fs.existsSync(sqliteFile)) {
-            res.download(sqliteFile, 'urban_clean.db');
-        } else {
-            res.status(404).json({ error: 'SQLite database file not found.' });
+// 8. Municipal Admin: Provision Driver Account
+app.post('/api/admin/driver/create', (req, res) => {
+    try {
+        const { name, email, password, vehicle, city, district } = req.body;
+        if (!name?.trim() || !email?.trim() || !password || password.length < 8) {
+            return res.status(400).json({ error: 'Enter driver name, a valid email, and password of at least 8 characters.' });
         }
-    });
+
+        const db = readDB();
+        const accounts = ensureAccountStore(db);
+        const normalizedEmail = email.trim().toLowerCase();
+        const emailInUse = Object.values(accounts).flat().some(a => a.email === normalizedEmail);
+        if (emailInUse) return res.status(409).json({ error: 'An account already exists with this email address.' });
+
+        const driverId = 'DRV-' + Math.floor(100 + Math.random() * 900);
+        const targetCity = city || 'Dadar';
+        const targetDistrict = district || 'Mumbai City';
+        const assignedVehicle = vehicle?.trim() || 'Standard Municipal Tipper (MH-02-UC-1010)';
+
+        const newAccount = createAccount({
+            id: driverId,
+            name: name.trim(),
+            email: normalizedEmail,
+            password,
+            role: 'driver',
+            vehicle: assignedVehicle,
+            city: targetCity,
+            district: targetDistrict
+        });
+
+        accounts.drivers.push(newAccount);
+
+        db.drivers = db.drivers || [];
+        const newDriverProfile = {
+            id: driverId,
+            name: name.trim(),
+            status: 'Off-Duty',
+            vehicle: assignedVehicle,
+            city: targetCity,
+            district: targetDistrict,
+            route: [`${targetCity} Depot`, 'Deonar Landfill'],
+            assignedComplaints: [],
+            efficiency: '0%',
+            distance: '0.0 km'
+        };
+        db.drivers.push(newDriverProfile);
+
+        // System notification announcing the new collection unit
+        db.notifications = db.notifications || [];
+        db.notifications.unshift({
+            id: 'NT-' + String(Date.now()).slice(-4),
+            title: `New Collection Unit Deployed (${targetCity})`,
+            message: `Driver ${name.trim()} provisioned for ${targetCity} municipal sector on vehicle ${assignedVehicle}.`,
+            type: 'info',
+            city: targetCity,
+            district: targetDistrict,
+            timeStr: 'Just now',
+            timestamp: Date.now()
+        });
+
+        writeDB(db);
+        res.status(201).json({ success: true, driver: newAccount });
+    } catch (err) {
+        console.error('Error creating driver:', err);
+        res.status(500).json({ error: 'Internal server error creating driver account.' });
+    }
+});
+
+// 9. Geofenced Area Notifications Endpoints
+app.get('/api/notifications', (req, res) => {
+    const db = readDB();
+    const city = req.query.city;
+    let list = db.notifications || [];
+
+    // Notification Geofencing:
+    // If a city is specified, return general notices (all or empty city) AND notices matching this exact city
+    if (city && city.toLowerCase() !== 'all') {
+        list = list.filter(n => !n.city || n.city.toLowerCase() === 'all' || n.city.toLowerCase() === city.toLowerCase());
+    }
+
+    res.json(list);
+});
+
+app.post('/api/admin/notifications', (req, res) => {
+    try {
+        const { title, message, type, city, district } = req.body;
+        if (!title?.trim() || !message?.trim()) {
+            return res.status(400).json({ error: 'Title and message are required.' });
+        }
+
+        const db = readDB();
+        db.notifications = db.notifications || [];
+
+        const newNotice = {
+            id: 'NT-' + String(Date.now()).slice(-4),
+            title: title.trim(),
+            message: message.trim(),
+            type: type || 'warning',
+            city: city || 'all',
+            district: district || '',
+            timeStr: 'Just now',
+            timestamp: Date.now()
+        };
+
+        db.notifications.unshift(newNotice);
+        if (db.notifications.length > 50) db.notifications = db.notifications.slice(0, 50);
+
+        writeDB(db);
+        res.status(201).json({ success: true, notification: newNotice });
+    } catch (err) {
+        console.error('Error posting notification:', err);
+        res.status(500).json({ error: 'Failed to broadcast notification.' });
+    }
+});
+
+app.delete('/api/admin/notifications/:id', (req, res) => {
+    const { id } = req.params;
+    const db = readDB();
+    db.notifications = (db.notifications || []).filter(n => n.id !== id);
+    writeDB(db);
+    res.json({ success: true, message: 'Notification removed.' });
 });
 
 // Fallback: Redirect all other requests to Landing Page

@@ -185,22 +185,34 @@
   ],
   "notifications": [
     {
-      "id": "NT-001",
+      "id": "NT-101",
+      "title": "BMC Dadar Ward Notice",
       "type": "info",
-      "message": "Driver Ramesh Kumar initiated shift on vehicle MH-02-EG-4521.",
-      "timeStr": "10 mins ago"
+      "message": "Regular morning waste collection completed across Senapati Bapat Marg & Ruparel campus.",
+      "city": "Dadar",
+      "district": "Mumbai City",
+      "timeStr": "30 mins ago",
+      "timestamp": 1791730000000
     },
     {
-      "id": "NT-002",
+      "id": "NT-102",
+      "title": "KBMC Advisory: Sector-2 Delay",
       "type": "warning",
-      "message": "Complaint COMP-002 status changed to Pending Pickup.",
-      "timeStr": "2 hours ago"
+      "message": "Garbage collection in Kulgaon-Badlapur Sector-2 delayed due to road excavation; afternoon collection round begins at 2:00 PM.",
+      "city": "Badlapur",
+      "district": "Thane",
+      "timeStr": "1 hour ago",
+      "timestamp": 1791728000000
     },
     {
-      "id": "NT-003",
+      "id": "NT-103",
+      "title": "KDMC Cleanliness Drive",
       "type": "success",
-      "message": "Complaint COMP-003 has been assigned to Driver Amit Patel.",
-      "timeStr": "1 day ago"
+      "message": "Special intensive cleanliness & bin clearance drive active along Station Road, Kalyan West.",
+      "city": "Kalyan",
+      "district": "Thane",
+      "timeStr": "3 hours ago",
+      "timestamp": 1791720000000
     }
   ],
   "accounts": {

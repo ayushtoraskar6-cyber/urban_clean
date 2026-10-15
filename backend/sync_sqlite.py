@@ -54,18 +54,23 @@ try:
             json.dumps(d.get('assignedComplaints', []))
         ))
 
-    # 3. Notifications
+    # 3. Notifications with Geofencing fields
+    cursor.execute("DROP TABLE IF EXISTS notifications;")
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS notifications (
-        id TEXT PRIMARY KEY, type TEXT, message TEXT, timeStr TEXT
+        id TEXT PRIMARY KEY, title TEXT, type TEXT, message TEXT,
+        city TEXT, district TEXT, timeStr TEXT, timestamp INTEGER
     )
     ''')
     cursor.execute("DELETE FROM notifications;")
     for n in data.get('notifications', []):
         cursor.execute('''
-        INSERT OR REPLACE INTO notifications (id, type, message, timeStr)
-        VALUES (?, ?, ?, ?)
-        ''', (n.get('id'), n.get('type'), n.get('message'), n.get('timeStr')))
+        INSERT OR REPLACE INTO notifications (id, title, type, message, city, district, timeStr, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            n.get('id'), n.get('title', 'Municipal Notice'), n.get('type', 'info'), n.get('message', ''),
+            n.get('city', 'all'), n.get('district', ''), n.get('timeStr', 'Recent'), n.get('timestamp', 0)
+        ))
 
     # 4. Accounts
     cursor.execute('''

@@ -142,9 +142,14 @@
                         <div class="admin-left-list">
                             <!-- Drivers list -->
                             <div class="card admin-list-card">
-                                <div class="card-header">
-                                    <h3>On Duty Drivers</h3>
-                                    <span class="badge badge-success" id="admin-drivers-count">0 Active</span>
+                                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <h3 style="margin: 0;">On Duty Drivers</h3>
+                                        <span class="badge badge-success" id="admin-drivers-count" style="margin-top: 4px;">0 Active</span>
+                                    </div>
+                                    <button class="btn btn-primary btn-sm" id="btn-open-driver-modal" style="padding: 5px 12px; font-size: 0.8rem;">
+                                        <i class="fa-solid fa-user-plus"></i> Add Driver
+                                    </button>
                                 </div>
                                 <div class="drivers-on-duty-list" id="admin-drivers-list">
                                     <!-- Dynamic drivers list -->
@@ -158,6 +163,22 @@
                                 </div>
                                 <div class="driver-detail-content" id="admin-driver-detail-content">
                                     <p>Select an on-duty driver from the list above to view their active path and assigned cleanup locations.</p>
+                                </div>
+                            </div>
+
+                            <!-- Area Announcements & Geofenced Alerts -->
+                            <div class="card" style="margin-top: 16px;">
+                                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <h3 style="margin: 0;"><i class="fa-solid fa-bullhorn" style="color: var(--primary);"></i> Area Geofenced Alerts</h3>
+                                        <p style="margin: 0; font-size: 0.75rem; color: var(--text-secondary);" id="admin-notice-geofence-tag">Geofence: Active Sector</p>
+                                    </div>
+                                    <button class="btn btn-warning btn-sm" id="btn-open-notice-modal" style="padding: 5px 12px; font-size: 0.8rem; font-weight: 600;">
+                                        <i class="fa-solid fa-plus"></i> Post Alert
+                                    </button>
+                                </div>
+                                <div id="admin-notices-container" style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
+                                    <!-- Dynamic area alerts -->
                                 </div>
                             </div>
                         </div>
@@ -246,6 +267,88 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Provisioning New Driver -->
+    <div class="modal-overlay" id="add-driver-modal">
+        <div class="modal-card auth-card" style="max-width: 520px;">
+            <button class="modal-close-btn" id="btn-close-driver-modal">&times;</button>
+            <div class="modal-header">
+                <div class="logo-icon"><i class="fa-solid fa-truck-front"></i></div>
+                <h2>Provision Municipal Driver</h2>
+                <p>Register a new collection truck operator under your municipal jurisdiction.</p>
+            </div>
+            <div class="modal-body">
+                <form id="form-provision-driver">
+                    <div class="form-group">
+                        <label for="new-driver-name">Driver Full Name</label>
+                        <input type="text" id="new-driver-name" required placeholder="e.g. Rajesh Patil">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-driver-email">Official Driver Email</label>
+                        <input type="email" id="new-driver-email" required placeholder="rajesh@urbanclean.org">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-driver-password">Initial Password (min 8 characters)</label>
+                        <input type="password" id="new-driver-password" required placeholder="Driver@123">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-driver-vehicle">Assigned Vehicle & Registration</label>
+                        <input type="text" id="new-driver-vehicle" required placeholder="e.g. Tata Ace Tipper (MH-05-BK-4421)">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-driver-city">Assigned Municipal Sector / City</label>
+                        <input type="text" id="new-driver-city" readonly style="background: #f1f5f9; cursor: not-allowed; font-weight: 600;">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" style="margin-top: 16px;">
+                        <i class="fa-solid fa-check"></i> Provision Driver Account
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Broadcasting Area Geofenced Alert -->
+    <div class="modal-overlay" id="broadcast-notice-modal">
+        <div class="modal-card auth-card" style="max-width: 540px;">
+            <button class="modal-close-btn" id="btn-close-notice-modal">&times;</button>
+            <div class="modal-header">
+                <div class="logo-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning);"><i class="fa-solid fa-bullhorn"></i></div>
+                <h2>Broadcast Area Geofenced Alert</h2>
+                <p>Notify citizens and collection drivers in your municipal area about schedule changes or advisories.</p>
+            </div>
+            <div class="modal-body">
+                <form id="form-broadcast-notice">
+                    <div class="form-group">
+                        <label for="notice-title">Notice Title / Advisory</label>
+                        <input type="text" id="notice-title" required placeholder="e.g. Garbage Collection Delayed Today">
+                    </div>
+                    <div class="form-group">
+                        <label for="notice-message">Detailed Announcement</label>
+                        <textarea id="notice-message" rows="3" required placeholder="e.g. Due to water pipeline maintenance in Sector 2, morning collection round is rescheduled to 2:00 PM." style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-family: inherit; font-size: 0.9rem;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="notice-type">Alert Urgency / Category</label>
+                        <select id="notice-type" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-family: inherit;">
+                            <option value="warning">⚠️ Warning - Collection Delay / Route Alteration</option>
+                            <option value="alert">🚨 Urgent Alert - Road Blockage / Emergency</option>
+                            <option value="info">ℹ️ Municipal Info - Schedule Advisory / Notice</option>
+                            <option value="success">✅ Announcement - Special Cleanliness Drive</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="notice-city">Geofenced Target Jurisdiction</label>
+                        <input type="text" id="notice-city" readonly style="background: #f1f5f9; cursor: not-allowed; font-weight: 600;">
+                        <small style="color: var(--text-secondary); font-size: 0.75rem; display: block; margin-top: 4px;">
+                            <i class="fa-solid fa-location-crosshairs"></i> Only residents and drivers within this municipal boundary will see this notification.
+                        </small>
+                    </div>
+                    <button type="submit" class="btn btn-warning btn-block" style="margin-top: 16px; font-weight: 700;">
+                        <i class="fa-solid fa-tower-broadcast"></i> Publish Geofenced Alert
+                    </button>
+                </form>
             </div>
         </div>
     </div>

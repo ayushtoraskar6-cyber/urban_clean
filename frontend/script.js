@@ -35,7 +35,8 @@ const STATE = {
     selectedAdminDriver: null,
     todayRouteSnapshot: null,
     eligibleComplaints: [],
-    isRouteLocked: false
+    isRouteLocked: false,
+    notifications: []
 };
 
 // Node coordinate configurations
@@ -123,6 +124,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupGlobalHeader();
     initializePageSpecificLogic();
     setupExperienceEnhancements();
+    setupNotificationBell();
+    renderGeofenceAlertBanner();
 });
 
 // ----------------------------------------------------
@@ -166,6 +169,129 @@ async function loadAppState() {
     // 3. Fetch data from backend
     await fetchComplaints();
     await fetchDrivers();
+    await fetchNotifications();
+}
+
+async function fetchNotifications() {
+    try {
+        const cityParam = (STATE.location && STATE.location.city) ? encodeURIComponent(STATE.location.city) : '';
+        const res = await fetch(`/api/notifications?city=${cityParam}`);
+        if (res.ok) {
+            STATE.notifications = await res.json();
+            updateBellNotificationUI();
+            renderGeofenceAlertBanner();
+        }
+    } catch (err) {
+        console.error('Error fetching notifications', err);
+    }
+}
+
+function setupNotificationBell() {
+    const bell = document.querySelector('.notification-bell');
+    if (!bell) return;
+
+    // Check if dropdown already attached
+    let wrapper = bell.parentElement;
+    if (!wrapper.classList.contains('notification-bell-wrapper')) {
+        const wrap = document.createElement('div');
+        wrap.className = 'notification-bell-wrapper';
+        wrapper.insertBefore(wrap, bell);
+        wrap.appendChild(bell);
+        wrapper = wrap;
+    }
+
+    let dropdown = wrapper.querySelector('.notification-dropdown');
+    if (!dropdown) {
+        dropdown = document.createElement('div');
+        dropdown.className = 'notification-dropdown';
+        dropdown.id = 'notification-dropdown';
+        wrapper.appendChild(dropdown);
+    }
+
+    bell.onclick = (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('active');
+        renderNotificationsDropdown();
+    };
+
+    document.addEventListener('click', (e) => {
+        if (!wrapper.contains(e.target)) {
+            dropdown.classList.remove('active');
+        }
+    });
+
+    updateBellNotificationUI();
+}
+
+function updateBellNotificationUI() {
+    const badge = document.querySelector('.bell-badge');
+    if (!badge) return;
+    const notices = STATE.notifications || [];
+    badge.style.display = notices.length > 0 ? 'block' : 'none';
+}
+
+function renderNotificationsDropdown() {
+    const dropdown = document.getElementById('notification-dropdown');
+    if (!dropdown) return;
+
+    const currentCity = (STATE.location && STATE.location.city) ? STATE.location.city : 'All';
+    const notices = STATE.notifications || [];
+
+    dropdown.innerHTML = `
+        <div class="notif-dropdown-header">
+            <h4><i class="fa-solid fa-bell"></i> Municipal Advisories</h4>
+            <span class="notif-geofence-pill"><i class="fa-solid fa-location-dot"></i> ${currentCity}</span>
+        </div>
+        <div class="notif-dropdown-list">
+            ${notices.length === 0 ? `
+                <div style="padding: 24px 16px; text-align: center; color: var(--text-secondary); font-size: 0.85rem;">
+                    <i class="fa-regular fa-circle-check" style="font-size: 1.8rem; color: var(--primary-green); display: block; margin-bottom: 8px;"></i>
+                    No active collection delays or alerts in ${currentCity}.
+                </div>
+            ` : notices.map(n => `
+                <div class="notif-item">
+                    <div class="notif-item-top">
+                        <span class="notif-tag ${n.type || 'info'}">${n.type || 'Notice'}</span>
+                        <span class="notif-item-time">${n.timeStr || 'Recent'}</span>
+                    </div>
+                    <div class="notif-item-title">${n.title}</div>
+                    <p class="notif-item-msg">${n.message}</p>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function renderGeofenceAlertBanner() {
+    // Only display advisory banner on citizen, driver, and guest dashboard
+    if (CURRENT_PAGE === 'admin.html') return;
+
+    const activeAlert = (STATE.notifications || []).find(n => n.type === 'warning' || n.type === 'alert');
+    let banner = document.getElementById('geofence-municipal-alert-banner');
+
+    if (!activeAlert) {
+        if (banner) banner.remove();
+        return;
+    }
+
+    const wrapper = document.querySelector('.view-wrapper') || document.querySelector('.main-content');
+    if (!wrapper) return;
+
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'geofence-municipal-alert-banner';
+        wrapper.insertBefore(banner, wrapper.firstChild);
+    }
+
+    banner.className = `geofence-alert-banner ${activeAlert.type}`;
+    const icon = activeAlert.type === 'alert' ? 'fa-triangle-exclamation' : 'fa-circle-exclamation';
+    banner.innerHTML = `
+        <div class="alert-icon"><i class="fa-solid ${icon}"></i></div>
+        <div class="alert-text">
+            <strong>${activeAlert.title}:</strong> ${activeAlert.message}
+        </div>
+        <span class="alert-pill">📍 Geofenced (${activeAlert.city || 'Area'})</span>
+    `;
 }
 
 async function fetchComplaints() {
@@ -365,6 +491,7 @@ async function applyLocationChange() {
     showToast(`Location changed to: ${STATE.location.city}, ${STATE.location.district}`, 'info');
     await fetchComplaints();
     await fetchDrivers();
+    await fetchNotifications();
     updateMapLocationViewports();
     drawAllMapMarkers();
 
@@ -375,9 +502,11 @@ async function applyLocationChange() {
         renderDriverPortal();
     } else if (CURRENT_PAGE === 'admin.html') {
         renderAdminPortal();
+        renderAdminNotices();
     } else if (CURRENT_PAGE === 'citizen.html') {
         renderCitizenTrackList();
     }
+    renderGeofenceAlertBanner();
 }
 
 function getLocationCoordinates() {
@@ -458,21 +587,23 @@ function initLoginPage() {
     const updateForm = () => {
         const role = roleInput.value;
         const isSignup = mode === 'signup';
-        const isAdmin = role === 'admin';
+        const isPublicSignup = role === 'citizen';
         document.querySelectorAll('.auth-mode').forEach(button => {
             button.classList.toggle('active', button.dataset.mode === mode);
-            button.hidden = isAdmin && button.dataset.mode === 'signup';
+            button.hidden = !isPublicSignup && button.dataset.mode === 'signup';
         });
-        if (isAdmin && isSignup) mode = 'login';
+        if (!isPublicSignup && isSignup) mode = 'login';
         signupFields.forEach(field => { field.hidden = !isSignup; });
         title.textContent = isSignup ? `Create a ${role} account` : `Welcome back, ${role}`;
         subtitle.textContent = isSignup ? 'Your UrbanClean account will be saved securely.' : 'Enter the credentials for your selected portal.';
         submitButton.textContent = isSignup ? 'Create Account' : 'Log In';
-        helper.innerHTML = isAdmin
-            ? '<p>Administrator accounts are issued by the municipality. Please use your assigned credentials.</p>'
-            : isSignup
-                ? `<p>Create a separate ${role} account. Passwords must contain at least 8 characters.</p>`
-                : `<p>Sign in to access your ${role} portal.</p>`;
+        helper.innerHTML = role === 'admin'
+            ? '<p><i class="fa-solid fa-shield-halved"></i> Administrator accounts are provisioned exclusively by the municipality.</p>'
+            : role === 'driver'
+                ? '<p><i class="fa-solid fa-truck"></i> Driver accounts are provisioned directly by the municipal administrator. Please sign in with your assigned vehicle ID credentials.</p>'
+                : isSignup
+                    ? `<p>Create a citizen account to report and track garbage issues. Passwords must contain at least 8 characters.</p>`
+                    : `<p>Sign in to access your citizen portal.</p>`;
         document.getElementById('login-name').required = isSignup;
         document.getElementById('login-confirm-password').required = isSignup;
         document.getElementById('login-password').autocomplete = isSignup ? 'new-password' : 'current-password';
@@ -483,7 +614,7 @@ function initLoginPage() {
             document.querySelectorAll('.role-pill').forEach(p => p.classList.remove('active'));
             pill.classList.add('active');
             roleInput.value = pill.getAttribute('data-role');
-            if (roleInput.value === 'admin') mode = 'login';
+            if (roleInput.value !== 'citizen') mode = 'login';
             updateForm();
         });
     });
@@ -988,6 +1119,159 @@ function initAdminPage() {
     const exportBtn = document.getElementById('btn-export-excel');
     if (exportBtn) {
         exportBtn.addEventListener('click', exportMonthlyReportToCSV);
+    }
+
+    // 1. Provision Driver Modal wiring
+    const openDriverBtn = document.getElementById('btn-open-driver-modal');
+    const driverModal = document.getElementById('add-driver-modal');
+    const closeDriverBtn = document.getElementById('btn-close-driver-modal');
+    const driverForm = document.getElementById('form-provision-driver');
+
+    if (openDriverBtn && driverModal) {
+        openDriverBtn.addEventListener('click', () => {
+            const cityInput = document.getElementById('new-driver-city');
+            if (cityInput) cityInput.value = STATE.location.city || 'Dadar';
+            driverModal.classList.add('active');
+        });
+    }
+    if (closeDriverBtn && driverModal) {
+        closeDriverBtn.addEventListener('click', () => driverModal.classList.remove('active'));
+        driverModal.addEventListener('click', (e) => {
+            if (e.target === driverModal) driverModal.classList.remove('active');
+        });
+    }
+    if (driverForm) {
+        driverForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('new-driver-name').value.trim();
+            const email = document.getElementById('new-driver-email').value.trim();
+            const password = document.getElementById('new-driver-password').value;
+            const vehicle = document.getElementById('new-driver-vehicle').value.trim();
+            const city = document.getElementById('new-driver-city').value;
+            const district = STATE.location.district || 'Thane';
+
+            try {
+                showToast('Provisioning collection driver account...', 'info');
+                const res = await fetch('/api/admin/driver/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, vehicle, city, district })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to create driver account.');
+
+                showToast(`Driver ${data.driver.name} successfully provisioned!`, 'success');
+                driverForm.reset();
+                driverModal.classList.remove('active');
+                await fetchDrivers();
+                await fetchNotifications();
+                renderAdminPortal();
+                renderAdminNotices();
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        });
+    }
+
+    // 2. Broadcast Notice Modal wiring
+    const openNoticeBtn = document.getElementById('btn-open-notice-modal');
+    const noticeModal = document.getElementById('broadcast-notice-modal');
+    const closeNoticeBtn = document.getElementById('btn-close-notice-modal');
+    const noticeForm = document.getElementById('form-broadcast-notice');
+
+    if (openNoticeBtn && noticeModal) {
+        openNoticeBtn.addEventListener('click', () => {
+            const cityInput = document.getElementById('notice-city');
+            if (cityInput) cityInput.value = STATE.location.city || 'Dadar';
+            noticeModal.classList.add('active');
+        });
+    }
+    if (closeNoticeBtn && noticeModal) {
+        closeNoticeBtn.addEventListener('click', () => noticeModal.classList.remove('active'));
+        noticeModal.addEventListener('click', (e) => {
+            if (e.target === noticeModal) noticeModal.classList.remove('active');
+        });
+    }
+    if (noticeForm) {
+        noticeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('notice-title').value.trim();
+            const message = document.getElementById('notice-message').value.trim();
+            const type = document.getElementById('notice-type').value;
+            const city = document.getElementById('notice-city').value;
+            const district = STATE.location.district || 'Thane';
+
+            try {
+                showToast('Broadcasting geofenced area alert...', 'info');
+                const res = await fetch('/api/admin/notifications', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, message, type, city, district })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to publish alert.');
+
+                showToast(`Geofenced notice published for ${city}!`, 'success');
+                noticeForm.reset();
+                noticeModal.classList.remove('active');
+                await fetchNotifications();
+                renderAdminNotices();
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        });
+    }
+
+    renderAdminNotices();
+}
+
+async function renderAdminNotices() {
+    const container = document.getElementById('admin-notices-container');
+    const tag = document.getElementById('admin-notice-geofence-tag');
+    if (!container) return;
+
+    const currentCity = (STATE.location && STATE.location.city) ? STATE.location.city : 'All';
+    if (tag) tag.innerText = `Geofence: ${currentCity} Sector`;
+
+    const notices = STATE.notifications || [];
+    if (notices.length === 0) {
+        container.innerHTML = `
+            <div style="padding: 16px; text-align: center; color: var(--text-secondary); font-size: 0.8rem; background: #f8fafc; border-radius: 6px;">
+                <i class="fa-solid fa-check-circle" style="color: var(--primary-green); margin-right: 6px;"></i> No active alerts for ${currentCity}. Click "Post Alert" to broadcast.
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = notices.map(n => `
+        <div class="admin-notice-card-item">
+            <div class="admin-notice-header">
+                <span class="notif-tag ${n.type || 'info'}">${n.type || 'Notice'}</span>
+                <button onclick="deleteAdminNotice('${n.id}')" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.75rem;" title="Delete Alert">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+            <div class="admin-notice-title">${n.title}</div>
+            <p class="admin-notice-desc">${n.message}</p>
+            <div class="admin-notice-footer">
+                <span><i class="fa-solid fa-location-dot"></i> ${n.city || 'All'}</span>
+                <span>${n.timeStr || 'Recent'}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function deleteAdminNotice(noticeId) {
+    if (!confirm('Are you sure you want to remove this area alert?')) return;
+    try {
+        const res = await fetch(`/api/admin/notifications/${noticeId}`, { method: 'DELETE' });
+        if (res.ok) {
+            showToast('Alert removed successfully.', 'info');
+            await fetchNotifications();
+            renderAdminNotices();
+        }
+    } catch (e) {
+        showToast('Failed to delete notification', 'error');
     }
 }
 
