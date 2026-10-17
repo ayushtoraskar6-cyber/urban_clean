@@ -338,6 +338,20 @@
         "salt": "1a423bbdb4a3cd9eae2f652a96970d41",
         "passwordHash": "142e8092daf12527911599e939a1d3b7e98cd51cf9c2a23f0d8346f40c7fe3c0582d0cafc773ee65f30d5ce1d440c8260a59669c4dd37a528217ae4ac87adc76",
         "createdAt": "2026-10-12T04:33:53.725Z"
+      },
+      {
+        "id": "CIT-209106",
+        "name": "Pratibha",
+        "email": "pratibha@06.gmail.com",
+        "role": "citizen",
+        "vehicle": "",
+        "state": "",
+        "district": "",
+        "city": "",
+        "isSuperAdmin": false,
+        "salt": "31169e8a17ece1372f2c53b62c37c2bc",
+        "passwordHash": "0e9edfdb18d8a7b32bdd537335999c94011939bc046734669af5f3caba7b9dd853d87649a9cd835ae45683424c6a2a574b73d1ba466a48a67803e81b520ddc4b",
+        "createdAt": "2026-10-17T05:33:29.416Z"
       }
     ],
     "drivers": [

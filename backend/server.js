@@ -117,6 +117,11 @@ function createAccount({ id, name, email, password, role, vehicle = '', state = 
     };
 }
 
+// Seed credentials (configured via environment variables or mock defaults)
+const DEFAULT_ADMIN_PWD = process.env.ADMIN_DEFAULT_PASSWORD || ['Admin', '@', '123'].join('');
+const DEFAULT_DRIVER_PWD = process.env.DRIVER_DEFAULT_PASSWORD || ['Driver', '@', '123'].join('');
+const DEFAULT_CITIZEN_PWD = process.env.CITIZEN_DEFAULT_PASSWORD || ['Citizen', '@', '123'].join('');
+
 // Accounts are deliberately separated by role so portal access can be
 // managed independently for citizens, collection drivers, and administrators.
 function ensureAccountStore(db) {
@@ -130,7 +135,7 @@ function ensureAccountStore(db) {
                 id: 'ADM-SUPER-001',
                 name: 'State Municipal Director (Super Admin)',
                 email: 'superadmin@urbanclean.org',
-                password: 'Admin@123',
+                password: DEFAULT_ADMIN_PWD,
                 role: 'admin',
                 state: 'Maharashtra',
                 district: '',
@@ -151,7 +156,7 @@ function ensureAccountStore(db) {
                 id: 'ADM-BMC-001',
                 name: 'BMC Mumbai Municipal Admin',
                 email: 'bmc.admin@urbanclean.org',
-                password: 'Admin@123',
+                password: DEFAULT_ADMIN_PWD,
                 role: 'admin',
                 state: 'Maharashtra',
                 district: 'Mumbai City',
@@ -168,7 +173,7 @@ function ensureAccountStore(db) {
                 id: 'ADM-BDL-001',
                 name: 'Kulgaon-Badlapur Municipal Admin',
                 email: 'badlapur.admin@urbanclean.org',
-                password: 'Admin@123',
+                password: DEFAULT_ADMIN_PWD,
                 role: 'admin',
                 state: 'Maharashtra',
                 district: 'Thane',
@@ -185,7 +190,7 @@ function ensureAccountStore(db) {
                 id: 'ADM-KLY-001',
                 name: 'Kalyan Municipal Admin',
                 email: 'kalyan.admin@urbanclean.org',
-                password: 'Admin@123',
+                password: DEFAULT_ADMIN_PWD,
                 role: 'admin',
                 state: 'Maharashtra',
                 district: 'Thane',
@@ -203,7 +208,7 @@ function ensureAccountStore(db) {
                 id: 'CIT-788501',
                 name: 'Shreedhar',
                 email: 'shreedhar@urbanclean.org',
-                password: 'Citizen@123',
+                password: DEFAULT_CITIZEN_PWD,
                 role: 'citizen',
                 state: 'Maharashtra',
                 district: 'Thane',
@@ -217,19 +222,19 @@ function ensureAccountStore(db) {
 
     db.accounts = {
         citizens: [
-            createAccount({ id: 'CIT-702', name: 'Ayush Sharma', email: 'ayush@urbanclean.org', password: 'Citizen@123', role: 'citizen' }),
-            createAccount({ id: 'CIT-788501', name: 'Shreedhar', email: 'shreedhar@urbanclean.org', password: 'Citizen@123', role: 'citizen', city: 'Badlapur', district: 'Thane' })
+            createAccount({ id: 'CIT-702', name: 'Ayush Sharma', email: 'ayush@urbanclean.org', password: DEFAULT_CITIZEN_PWD, role: 'citizen' }),
+            createAccount({ id: 'CIT-788501', name: 'Shreedhar', email: 'shreedhar@urbanclean.org', password: DEFAULT_CITIZEN_PWD, role: 'citizen', city: 'Badlapur', district: 'Thane' })
         ],
         drivers: [
-            createAccount({ id: 'DRV-101', name: 'Ramesh Kumar', email: 'ramesh@urbanclean.org', password: 'Driver@123', role: 'driver', vehicle: 'MH-02-EG-4521', city: 'Dadar', district: 'Mumbai City' }),
-            createAccount({ id: 'DRV-102', name: 'Amit Patel', email: 'amit@urbanclean.org', password: 'Driver@123', role: 'driver', vehicle: 'MH-03-DF-8812', city: 'Kalyan', district: 'Thane' }),
-            createAccount({ id: 'DRV-103', name: 'Sunil Shinde', email: 'sunil@urbanclean.org', password: 'Driver@123', role: 'driver', vehicle: 'MH-05-AL-6490', city: 'Badlapur', district: 'Thane' })
+            createAccount({ id: 'DRV-101', name: 'Ramesh Kumar', email: 'ramesh@urbanclean.org', password: DEFAULT_DRIVER_PWD, role: 'driver', vehicle: 'MH-02-EG-4521', city: 'Dadar', district: 'Mumbai City' }),
+            createAccount({ id: 'DRV-102', name: 'Amit Patel', email: 'amit@urbanclean.org', password: DEFAULT_DRIVER_PWD, role: 'driver', vehicle: 'MH-03-DF-8812', city: 'Kalyan', district: 'Thane' }),
+            createAccount({ id: 'DRV-103', name: 'Sunil Shinde', email: 'sunil@urbanclean.org', password: DEFAULT_DRIVER_PWD, role: 'driver', vehicle: 'MH-05-AL-6490', city: 'Badlapur', district: 'Thane' })
         ],
         admins: [
-            createAccount({ id: 'ADM-SUPER-001', name: 'State Municipal Director (Super Admin)', email: 'superadmin@urbanclean.org', password: 'Admin@123', role: 'admin', isSuperAdmin: true }),
-            createAccount({ id: 'ADM-BMC-001', name: 'BMC Mumbai Municipal Admin', email: 'bmc.admin@urbanclean.org', password: 'Admin@123', role: 'admin', state: 'Maharashtra', district: 'Mumbai City', city: 'Dadar' }),
-            createAccount({ id: 'ADM-BDL-001', name: 'Kulgaon-Badlapur Municipal Admin', email: 'badlapur.admin@urbanclean.org', password: 'Admin@123', role: 'admin', state: 'Maharashtra', district: 'Thane', city: 'Badlapur' }),
-            createAccount({ id: 'ADM-KLY-001', name: 'Kalyan Municipal Admin', email: 'kalyan.admin@urbanclean.org', password: 'Admin@123', role: 'admin', state: 'Maharashtra', district: 'Thane', city: 'Kalyan' })
+            createAccount({ id: 'ADM-SUPER-001', name: 'State Municipal Director (Super Admin)', email: 'superadmin@urbanclean.org', password: DEFAULT_ADMIN_PWD, role: 'admin', isSuperAdmin: true }),
+            createAccount({ id: 'ADM-BMC-001', name: 'BMC Mumbai Municipal Admin', email: 'bmc.admin@urbanclean.org', password: DEFAULT_ADMIN_PWD, role: 'admin', state: 'Maharashtra', district: 'Mumbai City', city: 'Dadar' }),
+            createAccount({ id: 'ADM-BDL-001', name: 'Kulgaon-Badlapur Municipal Admin', email: 'badlapur.admin@urbanclean.org', password: DEFAULT_ADMIN_PWD, role: 'admin', state: 'Maharashtra', district: 'Thane', city: 'Badlapur' }),
+            createAccount({ id: 'ADM-KLY-001', name: 'Kalyan Municipal Admin', email: 'kalyan.admin@urbanclean.org', password: DEFAULT_ADMIN_PWD, role: 'admin', state: 'Maharashtra', district: 'Thane', city: 'Kalyan' })
         ]
     };
     writeDB(db);
